@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>HCP Signal Studio</title>
+<title>Takeda IBD Intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: left nav + sticky presenter bar; each page = summary first (KPIs / verdict), detail below. Single light theme, chosen to match the client's maroon reference. */
+/* Layout: top header + left workspace nav + page area. The AI engagement engine page holds the live scoring demo (presenter bar + sub-tabs). Single light theme by choice, to match the client deck. */
 :root{
-  --bg:#f8f2f2; --surface:#ffffff; --surface-2:#fcf6f6; --line:#e9d6d9; --line-2:#dcc0c5;
-  --fg:#2a1216; --muted:#6e4f54; --faint:#9a7f84;
-  --brand:#6e1423; --brand-fg:#ffffff; --accent:#a3293d; --accent-soft:#f8e7ea; --accent-line:#e0b3bb;
+  --bg:#f7f4f4; --surface:#ffffff; --surface-2:#faf6f6; --line:#ece2e3; --line-2:#ddcdcf;
+  --fg:#26171a; --muted:#6b5458; --faint:#9b878a;
+  --brand:#9e0f24; --brand-fg:#ffffff; --accent:#c8102e; --accent-soft:#fbe8eb; --accent-line:#f0bcc4;
   --good:#2e7d5b; --good-deep:#1e5a40; --good-soft:#e7f4ed; --good-line:#a8d5bf;
   --bad:#b4232c; --bad-soft:#fbe9ea; --purple:#7b2d6b; --purple-soft:#f5e8f2;
   --warn:#9a5b00; --warn-soft:#fff3df; --blue:#2f5d8a; --blue-soft:#e8f0f8;
@@ -22,80 +22,252 @@
   --r:12px; color-scheme:light;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html,body{background:var(--bg);color:var(--fg)}
-body{font-family:var(--body);font-size:14px;line-height:1.45}
+body{margin:0;font-family:var(--body);font-size:14px;line-height:1.45}
 h1,h2,h3,h4{font-family:var(--display);margin:0;text-wrap:balance}
 p{margin:0}
+a{color:inherit}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.muted{color:var(--muted)}
-.small{font-size:12px}
+.muted{color:var(--muted)} .small{font-size:12px}
 
-.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}
-.side{background:var(--brand);color:var(--brand-fg);padding:18px 12px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
-.logo{display:flex;flex-direction:column;gap:2px;padding:0 8px}
-.logo b{font-family:var(--display);font-size:17px;font-weight:800;letter-spacing:-.01em}
-.logo span{font-size:11.5px;opacity:.75}
-.nav{display:flex;flex-direction:column;gap:2px}
-.nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-weight:600;font-size:13.5px;color:rgb(255 255 255 / .82)}
-.nav button:hover{background:rgb(255 255 255 / .08);color:#fff}
-.nav button[aria-current="page"]{background:#fff;color:var(--brand)}
-.nav button:focus-visible{outline:2px solid #fff}
-.nav svg{width:18px;height:18px;flex:none}
-.side .foot{margin-top:auto;font-size:11px;opacity:.7;padding:0 8px;line-height:1.4}
+/* ---------- shell ---------- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:10px 20px;flex-wrap:wrap}
+.brandmark{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer;border:0;background:none;padding:0}
+.brandmark .tk{font-family:var(--display);font-weight:800;font-size:22px;color:var(--accent);letter-spacing:-.02em}
+.brandmark .ma{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-left:1px solid var(--line-2);padding-left:12px}
+.ptitle{display:flex;flex-direction:column;line-height:1.15}
+.ptitle b{font-family:var(--display);font-size:14px}
+.ptitle span{font-size:12px;color:var(--muted)}
+.top .sp{flex:1}
+.conn{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--good-deep);background:var(--good-soft);border:1px solid var(--good-line);padding:5px 10px;border-radius:999px}
+.conn i{width:7px;height:7px;border-radius:50%;background:var(--good);animation:ping 1.8s infinite}
+.user{display:flex;align-items:center;gap:9px}
+.user .av2{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.user b{display:block;font-size:13px}
+.user span{font-size:11.5px;color:var(--muted)}
+.shell{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:calc(100vh - 58px)}
+.ws{background:var(--surface);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:6px;position:sticky;top:58px;height:calc(100vh - 58px);overflow:auto}
+.ws .lab{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--faint);padding:4px 10px 8px}
+.ws button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-weight:600;font-size:13.5px;color:var(--muted)}
+.ws button:hover{background:var(--surface-2);color:var(--fg)}
+.ws button[aria-current="page"]{background:var(--accent-soft);color:var(--brand)}
+.ws button:focus-visible{outline:2px solid var(--accent)}
+.ws svg{width:18px;height:18px;flex:none}
+.ws .bdg{margin-left:auto;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 7px;background:var(--accent);color:#fff}
+.ws .bdg.ai{background:var(--fg)}
+.content{min-width:0;padding-inline:24px;padding-block:18px 36px;display:flex;flex-direction:column;gap:16px}
+.crumb{font-size:12px;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:600}
+.phd{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.phd h1{font-size:clamp(22px,2.6vw,30px);font-weight:800;letter-spacing:-.015em}
+.phd p{color:var(--muted);margin-top:4px;max-width:70ch}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.period{font-size:12.5px;font-weight:700;border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;background:var(--surface)}
+.foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.btn{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:default}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sel{border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;background:var(--surface);max-width:100%}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.card>h3{font-size:15px;display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card>.sub{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.g21{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px}
+.g12{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px}
+.kp6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.kp4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0;text-decoration:none}
+button.kpi{cursor:pointer;text-align:left;font:inherit}
+button.kpi:hover{border-color:var(--accent)}
+.kpi .l{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-family:var(--display);font-size:26px;font-weight:800;line-height:1.1}
+.kpi .s{font-size:12px;color:var(--muted)}
+.kpi .s .up,.up{color:var(--good);font-weight:700}
+.kpi.up .v{color:var(--good)} .kpi.down .v{color:var(--bad)}
+.dn{color:var(--bad);font-weight:700}
+.prio{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.prio.High{background:var(--accent-soft);color:var(--brand)}
+.prio.Medium{background:var(--warn-soft);color:var(--warn)}
+.prio.Low{background:#eef0f2;color:#4d5862}
+.ini{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--brand);display:inline-grid;place-items:center;font-weight:700;font-size:11.5px;flex:none}
+.who3{display:flex;gap:10px;align-items:center}
+.who3 b{display:block;font-weight:600}
+.who3 span{font-size:11.5px;color:var(--muted)}
+.lnk{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:12.5px}
+.lnk:hover{text-decoration:underline}
+.brief{display:flex;flex-direction:column;gap:10px}
+.brief button{all:unset;cursor:pointer;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2)}
+.brief button:hover{border-color:var(--accent)}
+.brief .n{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:var(--display);font-weight:800}
+.brief b{display:block;font-size:13px}
+.brief span{font-size:12px;color:var(--muted)}
+.hbars{display:flex;flex-direction:column;gap:7px}
+.hb{display:grid;grid-template-columns:150px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:12.5px}
+.hb .tr{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.hb .tr span{display:block;height:100%;background:var(--accent);border-radius:5px}
+.hb .nm2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.heat{width:100%;border-collapse:separate;border-spacing:4px;font-size:12px}
+.heat td{text-align:center;border-radius:6px;padding:9px 4px;font-family:var(--mono);font-weight:700}
+.heat th{font-weight:600;color:var(--muted);font-size:11.5px;text-align:center;padding:2px}
+.heat th:first-child{text-align:left}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table.t{border-collapse:collapse;width:100%;font-size:13px}
+.t th{background:var(--surface-2);text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.t tbody tr:last-child td{border-bottom:0}
+.t tbody tr.click{cursor:pointer}
+.t tbody tr.click:hover{background:var(--surface-2)}
+.sigt{display:flex;flex-direction:column}
+.sg{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);align-items:start}
+.sg:last-child{border-bottom:0}
+.sg.new{animation:slide .6s ease}
+.sg .ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:11px;font-weight:800;font-family:var(--mono)}
+.sg .ty{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.sg b{display:block;margin:1px 0}
+.sg .d{font-size:12.5px;color:var(--muted)}
+.sg .r{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip:hover{border-color:var(--accent)}
+.tog{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer}
+.tog input{accent-color:var(--good);width:16px;height:16px}
+.steps{display:flex;flex-direction:column;gap:8px}
+.stp{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;transition:background .3s,border-color .3s}
+.stp .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line-2);font-family:var(--mono);font-weight:700;font-size:12px;color:var(--muted)}
+.stp b{display:block;font-size:13.5px}
+.stp small{color:var(--muted);font-size:12px}
+.stp .st2{font-size:11.5px;font-weight:700;color:var(--faint)}
+.stp.run{border-color:var(--accent);background:var(--accent-soft)}
+.stp.run .n{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite;color:transparent}
+.stp.ok{border-color:var(--good-line);background:var(--good-soft)}
+.stp.ok .n{background:var(--good);color:#fff;border-color:var(--good)}
+.stp.ok .st2{color:var(--good-deep)}
+.mets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.mets div{background:var(--surface-2);border-radius:10px;padding:10px;text-align:center}
+.mets b{display:block;font-family:var(--display);font-size:20px;font-weight:800}
+.mets span{font-size:11.5px;color:var(--muted)}
+.wt{display:flex;flex-direction:column}
+.wt div{display:grid;grid-template-columns:minmax(0,1fr) 120px 44px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.wt div:last-child{border-bottom:0}
+.wt .tr{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.wt .tr span{display:block;height:100%;background:var(--accent)}
+.fe{display:flex;flex-direction:column;gap:8px}
+.fe div{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;padding:9px 10px;border-radius:10px;background:var(--surface-2)}
+.fe .n{width:26px;height:26px;border-radius:7px;background:var(--fg);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;font-family:var(--mono)}
+.fe b{display:block;font-size:13px}
+.fe span{font-size:12px;color:var(--muted)}
+.etabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.etabs button{all:unset;cursor:pointer;padding:10px 14px;font-weight:700;font-size:13.5px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;display:inline-flex;gap:8px;align-items:center}
+.etabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--accent)}
+.etabs button:focus-visible{outline:2px solid var(--accent)}
+.livepill{font-size:10.5px;font-weight:800;letter-spacing:.06em;background:var(--good);color:#fff;border-radius:999px;padding:1px 7px}
+.cta{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:linear-gradient(0deg,var(--accent-soft),var(--accent-soft));border:1px solid var(--accent-line);border-radius:var(--r);padding:14px 16px}
+.cta b{font-family:var(--display);font-size:15px;color:var(--brand);display:block}
+.cta span{font-size:12.5px;color:var(--muted)}
+.hlist{display:flex;flex-direction:column;gap:4px}
+.hlist button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;font-size:13px;font-weight:600}
+.hlist button:hover{background:var(--surface-2)}
+.hlist button[aria-pressed="true"]{background:var(--accent-soft);color:var(--brand)}
+.scorebox{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);gap:10px;align-items:center}
+.sb{border-radius:12px;padding:14px;text-align:center}
+.sb.a{background:var(--surface-2);border:1px solid var(--line)}
+.sb.b{background:var(--good-soft);border:1px solid var(--good-line)}
+.sb .k{font-size:11.5px;color:var(--muted);font-weight:600}
+.sb .n{font-family:var(--display);font-size:40px;font-weight:800;line-height:1.1}
+.sb.b .n{color:var(--good-deep)}
+.sb .c{font-size:11.5px;color:var(--muted)}
+.drv{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.drv div{display:grid;grid-template-columns:minmax(0,1fr) 52px 44px;gap:8px;align-items:center;padding:8px 10px;border-radius:8px;background:var(--surface-2);font-size:13px}
+.recs{display:flex;flex-direction:column;gap:8px}
+.rec{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.rec .n{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--brand);display:grid;place-items:center;font-weight:800;font-size:12px}
+.rec b{display:block;font-size:13.5px}
+.rec span{font-size:12px;color:var(--muted)}
+.rec.done{background:var(--good-soft);border-color:var(--good-line)}
+.prob{display:flex;flex-direction:column;gap:10px}
+.prob div{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:4px 10px;align-items:center}
+.prob b{font-size:13px}
+.prob small{grid-column:1 / -1;font-size:11.5px;color:var(--muted)}
+.prob .tr{grid-column:1 / -1;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.prob .tr span{display:block;height:100%;background:var(--good)}
+.ms{display:flex;flex-direction:column;gap:8px}
+.ms div{display:flex;gap:10px;align-items:center;font-size:13px;padding:8px 10px;border-radius:9px;background:var(--surface-2)}
+.ms i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.opp{display:flex;flex-direction:column;gap:8px}
+.opp div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.opp b{display:block;font-size:13.5px}
+.opp span{font-size:12px;color:var(--muted)}
+.opp div.gap{border-color:#efc9cc;background:#fffafa}
+.ev2{display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.ev2:last-child{border-bottom:0}
+.ev2 .dt{border-radius:10px;background:var(--accent);color:#fff;text-align:center;padding:6px 0;font-family:var(--display);line-height:1.05}
+.ev2 .dt b{display:block;font-size:18px} .ev2 .dt span{font-size:10.5px;font-weight:700}
+.ev2 strong{display:block;font-size:13.5px}
+.ev2 small{color:var(--muted);font-size:12px}
+.prof{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px;align-items:center}
+.prof .pic{width:84px;height:84px;border-radius:50%;background:var(--accent-soft);border:3px solid var(--accent-line);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:28px;color:var(--brand)}
+.prof h2{font-size:24px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;background:var(--surface-2);border:1px solid var(--line)}
+.pscores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pubs{display:flex;flex-direction:column}
+.pubs div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.pubs div:last-child{border-bottom:0}
+.pubs b{font-size:13.5px}
+.pubs small{color:var(--muted);font-size:12px}
+.ver{font-size:11px;font-weight:700;color:var(--good-deep);background:var(--good-soft);border-radius:999px;padding:2px 8px;align-self:start}
+svg.chart text{font-family:var(--body);font-size:11px;fill:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 
-.main{min-width:0;padding-inline:20px;padding-block:0 40px;display:flex;flex-direction:column;gap:18px}
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;margin-inline:-20px;padding:10px 20px;background:rgb(248 242 242 / .92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+/* ---------- live demo (inside AI engagement engine) ---------- */
+.dbar{position:sticky;top:58px;z-index:20;background:rgb(247 244 244 / .94);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .live{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:5px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
 .live i{width:8px;height:8px;border-radius:50%;background:var(--faint)}
 .live.on{color:var(--good);border-color:var(--good-line)}
 .live.on i{background:var(--good);animation:ping 1.6s infinite}
 @keyframes ping{0%{box-shadow:0 0 0 0 rgb(46 125 91 / .55)}100%{box-shadow:0 0 0 9px rgb(46 125 91 / 0)}}
 .clock{font-size:12px;color:var(--muted);display:flex;flex-direction:column;line-height:1.2}
-.clock b{color:var(--fg);font-size:13px}
-.bar .sp{flex:1}
-.btn{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
-.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
-.btn.primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.ghost{background:transparent}
-.btn:disabled{opacity:.45;cursor:default}
+.clock b{color:var(--fg);font-size:12.5px}
+.dbar .sp{flex:1}
 .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;background:var(--surface)}
 .seg button{border:0;background:none;padding:7px 10px;cursor:pointer;font-weight:600;font-size:12.5px;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
-
-.phead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px;padding-top:4px}
-.phead h1{font-size:clamp(20px,2.4vw,26px);font-weight:800;color:var(--brand);letter-spacing:-.01em}
-.phead p{color:var(--muted);max-width:70ch}
-.eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
-
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
-.card>h3{font-size:14.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.card>h3 small{font-family:var(--body);font-weight:500;color:var(--muted);font-size:12px}
+.dtabs{display:flex;gap:6px;flex-wrap:wrap}
+.dtabs button{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
+.dtabs button[aria-current="page"]{background:var(--fg);border-color:var(--fg);color:#fff}
+.dtabs button:hover{border-color:var(--accent)}
+#dpage{display:flex;flex-direction:column;gap:16px}
+.dhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+.dhead h2{font-size:20px;font-weight:800;color:var(--brand)}
+.dhead p{color:var(--muted);max-width:70ch}
 .grid{display:grid;gap:14px}
 .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.kpi .l{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.kpi .v{font-family:var(--display);font-size:26px;font-weight:800;line-height:1.1}
-.kpi .s{font-size:12px;color:var(--muted)}
-.kpi.up .v{color:var(--good)} .kpi.down .v{color:var(--bad)}
-
 .dpill{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:24px;padding:0 7px;border-radius:7px;font-family:var(--mono);font-weight:700;font-size:13px}
 .dpill.a{background:var(--accent-soft);color:var(--brand);border:1px solid var(--accent-line)}
 .dpill.d{background:var(--good-soft);color:var(--good-deep);border:1px solid var(--good-line)}
 .dpill.d.dn{background:var(--bad-soft);color:var(--bad);border-color:#efb8bc}
 .delta{font-family:var(--mono);font-weight:700;font-size:12.5px}
 .delta.up{color:var(--good)} .delta.dn{color:var(--bad)} .delta.eq{color:var(--faint)}
-
-.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th{position:sticky;top:0;background:var(--surface-2);text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-th button{all:unset;cursor:pointer}
-th button:hover{color:var(--accent)}
-td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
-tbody tr{cursor:pointer;transition:background .6s}
-tbody tr:hover{background:var(--surface-2)}
+table.dt{border-collapse:collapse;width:100%;font-size:13px}
+.dt th{position:sticky;top:0;background:var(--surface-2);text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.dt th button{all:unset;cursor:pointer}
+.dt th button:hover{color:var(--accent)}
+.dt td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.dt tbody tr{cursor:pointer;transition:background .6s}
+.dt tbody tr:hover{background:var(--surface-2)}
 tr.flash{background:var(--good-soft)!important}
 tr.flash.neg{background:var(--bad-soft)!important}
 td .nm{font-weight:600}
@@ -104,7 +276,6 @@ td .sub{font-size:11.5px;color:var(--muted)}
 .search{border:1px solid var(--line-2);border-radius:8px;padding:7px 10px;background:var(--surface);min-width:0;width:220px;max-width:100%}
 .chk{display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
 .chk input{accent-color:var(--accent);width:16px;height:16px}
-
 .badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 8px;font-size:11.5px;font-weight:700;white-space:nowrap}
 .badge i{width:7px;height:7px;border-radius:50%;background:currentColor}
 .src-veeva{background:var(--good-soft);color:var(--good-deep)}
@@ -116,8 +287,6 @@ td .sub{font-size:11.5px;color:var(--muted)}
 .src-claims,.src-rx,.src-onekey,.src-align{background:#f1eaeb;color:var(--muted)}
 .pts{font-family:var(--mono);font-weight:700;font-size:12.5px;color:var(--good);white-space:nowrap}
 .pts.neg{color:var(--bad)}
-
-/* feed */
 .feedgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
 .feed{display:flex;flex-direction:column}
 .ev{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:4px 12px;padding:10px 4px;border-bottom:1px solid var(--line);align-items:start}
@@ -133,7 +302,6 @@ td .sub{font-size:11.5px;color:var(--muted)}
 .evid:hover{color:var(--accent)}
 .empty{padding:28px 10px;text-align:center;color:var(--muted)}
 .empty b{display:block;color:var(--fg);font-family:var(--display);font-size:15px;margin-bottom:4px}
-
 .pipe{display:flex;flex-direction:column;gap:6px}
 .stage{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;transition:background .25s,border-color .25s,box-shadow .25s}
 .stage .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line-2);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted)}
@@ -144,13 +312,7 @@ td .sub{font-size:11.5px;color:var(--muted)}
 .health{display:flex;flex-direction:column}
 .health div{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;align-items:center}
 .health div:last-child{border-bottom:0}
-
-/* 360 */
 .picker{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
-.chip:hover{border-color:var(--accent)}
-.sel{border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;background:var(--surface);max-width:100%}
 .hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 40px minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:stretch}
 .who{display:flex;gap:14px;align-items:center}
 .av{width:62px;height:62px;border-radius:50%;background:var(--accent-soft);border:2px solid var(--accent-line);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:20px;color:var(--brand);flex:none}
@@ -174,6 +336,7 @@ td .sub{font-size:11.5px;color:var(--muted)}
 .verdict b{font-family:var(--display);font-size:18px;line-height:1.2}
 .verdict span{font-size:12.5px;opacity:.92}
 .cols3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+.cols3 .card>h3{margin-bottom:10px}
 .catrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;padding:8px 0;border-bottom:1px solid var(--line)}
 .catrow:last-of-type{border-bottom:0}
 .catrow b{font-size:13px}
@@ -185,8 +348,6 @@ td .sub{font-size:11.5px;color:var(--muted)}
 .note{font-size:11.5px;color:var(--muted);background:var(--surface-2);border:1px dashed var(--line-2);border-radius:8px;padding:8px 10px;margin-top:8px}
 .stack{display:flex;height:18px;border-radius:5px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line)}
 .stack span{height:100%;transition:width .5s ease}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--muted);margin-top:8px}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .eq{font-family:var(--mono);font-size:13px;font-weight:700;margin:10px 0 2px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
 .eq .g{color:var(--good)} .eq .b{color:var(--bad)}
 .sigsum{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
@@ -195,11 +356,8 @@ td .sub{font-size:11.5px;color:var(--muted)}
 .evlist .ev{grid-template-columns:72px minmax(0,1fr) auto;padding:8px 2px}
 .nba{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 12px;border-radius:0 8px 8px 0;font-size:13px}
 .nba b{display:block;font-family:var(--display);font-size:13px;color:var(--brand);margin-bottom:2px}
-svg.chart text{font-family:var(--body);font-size:11px;fill:var(--muted)}
-
-/* ask */
 .askgrid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px;align-items:start}
-.chat{display:flex;flex-direction:column;gap:12px;min-height:380px}
+.chat{display:flex;flex-direction:column;gap:12px;min-height:360px}
 .msg{max-width:min(720px,92%);padding:11px 14px;border-radius:12px;font-size:13.5px;line-height:1.5}
 .msg.u{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
 .msg.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
@@ -217,32 +375,28 @@ details.trace summary{cursor:pointer;font-weight:700;color:var(--muted)}
 .trace ol{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
 .trace code{font-family:var(--mono);font-size:11px;background:var(--surface-2);padding:1px 4px;border-radius:4px}
 .ok{color:var(--good);font-weight:700}
-.askform{display:flex;gap:8px;position:sticky;bottom:0;background:var(--bg);padding:10px 0}
+.askform{display:flex;gap:8px;padding-top:10px}
 .askform input{flex:1;min-width:0;border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;background:var(--surface)}
 .sugg{display:flex;flex-direction:column;gap:6px}
 .sugg button{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 11px;cursor:pointer;font-size:13px}
 .sugg button:hover{border-color:var(--accent);color:var(--accent)}
-
-/* sources */
 .srcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .src{display:flex;flex-direction:column;gap:8px}
-.src .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.src .top2{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .src h4{font-size:14px}
 .src .k{font-size:12px;color:var(--muted)}
-.src .rec{font-family:var(--display);font-size:22px;font-weight:800}
-.src .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);gap:8px;flex-wrap:wrap}
+.src .rec2{font-family:var(--display);font-size:22px;font-weight:800}
+.src .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);gap:8px;flex-wrap:wrap;align-items:center}
 .stat{font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap}
 .stat.ok{background:var(--good-soft);color:var(--good-deep)}
 .stat.batch{background:#f1eaeb;color:var(--muted)}
 .stat.opt{background:var(--warn-soft);color:var(--warn)}
 .stat.sync{background:var(--blue-soft);color:var(--blue)}
-
-/* architecture */
 .layers{display:flex;flex-direction:column;gap:8px}
 .layer{display:grid;grid-template-columns:190px minmax(0,1fr) minmax(0,.9fr);gap:12px;align-items:stretch;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;transition:box-shadow .25s,border-color .25s}
 .layer .lh{background:var(--brand);color:#fff;padding:12px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px}
 .layer .lh b{font-family:var(--display);font-size:13.5px}
-.layer .lh small{opacity:.75;font-size:11px;font-family:var(--mono)}
+.layer .lh small{opacity:.8;font-size:11px;font-family:var(--mono)}
 .layer .comp{padding:10px 0;display:flex;flex-wrap:wrap;gap:6px;align-content:center}
 .layer .comp span{border:1px solid var(--line-2);border-radius:8px;padding:4px 9px;font-size:12px;font-weight:600;background:var(--surface-2)}
 .layer .demo{padding:10px 14px 10px 0;font-size:12px;color:var(--muted);display:flex;flex-direction:column;justify-content:center}
@@ -252,13 +406,11 @@ details.trace summary{cursor:pointer;font-weight:700;color:var(--muted)}
 .commit{display:flex;flex-wrap:wrap;gap:8px}
 .commit span{font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
 
-/* overlay, drawer, toast */
 .boot{position:fixed;inset:0;z-index:60;background:var(--brand);color:#fff;display:grid;place-items:center;padding:16px;overflow:auto}
-[hidden]{display:none!important}
 .bootbox{width:min(560px,100%);display:flex;flex-direction:column;gap:14px}
 .bootbox h2{font-size:24px;font-weight:800}
-.bootbox p{opacity:.8}
-.blist{display:flex;flex-direction:column;gap:4px;background:rgb(255 255 255 / .06);border:1px solid rgb(255 255 255 / .15);border-radius:12px;padding:10px 14px}
+.bootbox p{opacity:.85}
+.blist{display:flex;flex-direction:column;gap:4px;background:rgb(255 255 255 / .07);border:1px solid rgb(255 255 255 / .18);border-radius:12px;padding:10px 14px}
 .bl{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px;padding:5px 0;opacity:.45;transition:opacity .3s}
 .bl.on,.bl.done{opacity:1}
 .bl .st{width:16px;height:16px;border-radius:50%;border:2px solid rgb(255 255 255 / .4)}
@@ -270,7 +422,7 @@ details.trace summary{cursor:pointer;font-weight:700;color:var(--muted)}
 .bootbox .row{display:flex;gap:8px;flex-wrap:wrap}
 .bootbox .btn{background:#fff;color:var(--brand);border-color:#fff}
 .bootbox .btn.ghost{background:transparent;color:#fff;border-color:rgb(255 255 255 / .5)}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:50;background:var(--surface);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgb(42 18 22 / .15);padding:20px;display:flex;flex-direction:column;gap:12px;overflow:auto;transform:translateX(105%);transition:transform .25s ease}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:50;background:var(--surface);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgb(38 23 26 / .15);padding:20px;display:flex;flex-direction:column;gap:12px;overflow:auto;transform:translateX(105%);transition:transform .25s ease}
 .drawer.open{transform:none}
 .drawer h3{font-size:17px;color:var(--brand)}
 .kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 10px;font-size:13px}
@@ -282,7 +434,8 @@ pre.raw{font-family:var(--mono);font-size:11px;background:var(--surface-2);borde
 .toast b{font-family:var(--mono)}
 @keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-@media (max-width:1180px){
+@media (max-width:1280px){
+  .kp6{grid-template-columns:repeat(3,minmax(0,1fr))}
   .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
   .cols3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .cols3>.card:last-child{grid-column:1 / -1}
@@ -292,70 +445,71 @@ pre.raw{font-family:var(--mono);font-size:11px;background:var(--surface-2);borde
   .layer{grid-template-columns:150px minmax(0,1fr)}
   .layer .demo{grid-column:2;padding-top:0}
 }
-@media (max-width:820px){
-  .app{grid-template-columns:minmax(0,1fr)}
-  .side{position:static;height:auto;flex-direction:row;align-items:center;gap:10px;padding:10px 16px;overflow-x:auto}
-  .side .foot,.logo span{display:none}
-  .nav{flex-direction:row}
-  .nav button{padding:7px 9px;white-space:nowrap}
-  .nav button span{display:none}
-  .main{padding-inline:16px}
-  .bar{margin-inline:-16px;padding-inline:16px}
-  .feedgrid,.askgrid,.cols3{grid-template-columns:minmax(0,1fr)}
-  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .hero .verdict{grid-column:1 / -1}
+@media (max-width:980px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .ws{position:static;height:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px 16px}
+  .ws .lab{display:none}
+  .ws button{white-space:nowrap;padding:7px 10px}
+  .content{padding-inline:16px}
+  .g2,.g3,.g21,.g12,.feedgrid,.askgrid{grid-template-columns:minmax(0,1fr)}
+  .kp4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ptitle,.user div{display:none}
+  .dbar{top:52px}
+}
+@media (max-width:640px){
+  .kp6,.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols3,.hero{grid-template-columns:minmax(0,1fr)}
+  .hero .verdict,.hero .who{grid-column:auto}
   .layer{grid-template-columns:minmax(0,1fr)}
   .layer .comp,.layer .demo{padding:0 14px 10px}
   .layer .demo{grid-column:auto}
+  .conn{display:none}
+  .prof{grid-template-columns:minmax(0,1fr)}
+  .pscores,.mets{grid-template-columns:minmax(0,1fr)}
+  .hb{grid-template-columns:110px minmax(0,1fr) 40px}
+  .scorebox{grid-template-columns:minmax(0,1fr)}
+  .scorebox .arrow{display:none}
 }
-@media (max-width:420px){.nav button span{display:none}.bar .clock{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body style="margin:0">
-
-<div class="app">
-  <aside class="side">
-    <div class="logo"><b>HCP Signal Studio</b><span>Dynamic HCP Scoring · IBD</span></div>
-    <nav class="nav" id="nav" aria-label="Pages"></nav>
-    <div class="foot">Synthetic data for illustration only. No real HCPs, claims or CRM records are shown.</div>
-  </aside>
-  <main class="main">
-    <div class="bar" role="toolbar" aria-label="Presenter controls">
-      <span class="live" id="live"><i></i><span id="liveTxt">Paused</span></span>
-      <span class="clock"><span>Demo clock</span><b class="num" id="clock"></b></span>
-      <span class="sp"></span>
-      <button class="btn primary" id="play" type="button">▶ Start live feed</button>
-      <button class="btn" id="step" type="button" title="Process the next signal">Next signal</button>
-      <span class="seg" role="group" aria-label="Speed"><button type="button" data-speed="1" aria-pressed="true">1×</button><button type="button" data-speed="3" aria-pressed="false">3×</button></span>
-      <button class="btn ghost" id="reset" type="button">Reset demo</button>
-    </div>
-    <div id="page"></div>
-  </main>
+<body>
+<header class="top">
+  <button class="brandmark" type="button" data-route="dashboard" aria-label="Executive dashboard"><span class="tk">takeda</span><span class="ma">Medical Affairs</span></button>
+  <div class="ptitle"><b>IBD Scientific Engagement</b><span>Intelligence Platform</span></div>
+  <span class="sp"></span>
+  <span class="conn"><i></i>Scientific intelligence connected</span>
+  <div class="user"><span class="av2">AK</span><div><b>Alex Kim</b><span>Medical Affairs Director</span></div></div>
+</header>
+<div class="shell">
+  <nav class="ws" id="ws" aria-label="Intelligence workspace"></nav>
+  <main class="content" id="content"></main>
 </div>
 <div class="drawer" id="drawer" role="dialog" aria-label="Evidence detail" aria-modal="false"></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="boot" id="boot" hidden></div>
 
 <script>
-/* ---------- utilities ---------- */
+/* =====================================================================
+   Shared utilities
+   ===================================================================== */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const dec=x=>clamp(Math.ceil(x/10-1e-9),1,10);
-const fmtPts=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(1);
 const fmtN=n=>n.toLocaleString('en-US');
 const pad=n=>String(n).padStart(2,'0');
-const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const fmtT=ms=>{const d=new Date(ms);return `${WD[d.getUTCDay()]} ${d.getUTCDate()} ${MO[d.getUTCMonth()]}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;};
-const fmtD=ms=>{const d=new Date(ms);return `${d.getUTCDate()} ${MO[d.getUTCMonth()]}`;};
-const START=Date.UTC(2026,9,1,9,0);
-const DAY=864e5;
+const ini=n=>n.replace('Dr. ','').split(' ').map(w=>w[0]).join('').slice(0,2);
 const ICON={
- grid:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
+ home:'<path d="M3 11 12 4l9 7v9H3z"/><path d="M9 20v-6h6v6"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
  pulse:'<path d="M3 12h4l2-6 4 12 2-6h6"/>',
+ brain:'<path d="M9 3.5a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 5 3 3 0 0 0 4 3V3.5zM15 3.5a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 5 3 3 0 0 1-4 3V3.5z"/>',
+ check:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/>',
+ trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>',
+ rise:'<path d="M3 20h18M4 16l5-5 4 3 7-8M15 6h5v5"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+ grid:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
  chat:'<path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 21l1.9-5A8.5 8.5 0 1 1 21 11.5z"/>',
  db:'<ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
@@ -363,8 +517,417 @@ const ICON={
  right:'<path d="M3 12h16M13 5l7 7-7 7"/>'
 };
 const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
+function toastMsg(m){const el=document.createElement('div');el.className='toast';el.textContent=m;$('toasts').prepend(el);setTimeout(()=>el.remove(),3000);}
 
-/* ---------- reference data ---------- */
+/* simple SVG line chart */
+function lineChart({labels,series,ymax,ymin=0,w=560,h=220,fmt=v=>v,area=false}){
+ const L=40,R=14,T=14,B=28;
+ const x=i=>L+(w-L-R)*(labels.length===1?0:i/(labels.length-1)),y=v=>T+(h-T-B)*(1-(v-ymin)/(ymax-ymin));
+ let g='';for(let k=0;k<=4;k++){const v=ymin+(ymax-ymin)*k/4;g+=`<line x1="${L}" x2="${w-R}" y1="${y(v)}" y2="${y(v)}" stroke="#efe6e7"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${fmt(Math.round(v*10)/10)}</text>`;}
+ labels.forEach((l,i)=>{g+=`<text x="${x(i)}" y="${h-8}" text-anchor="middle">${esc(l)}</text>`;});
+ const s=series.map(se=>{const d=se.values.map((v,i)=>`${i?'L':'M'}${x(i)} ${y(v)}`).join(' ');
+  const ar=area?`<path d="${d} L${x(se.values.length-1)} ${y(ymin)} L${x(0)} ${y(ymin)}Z" fill="${se.color}" opacity=".10"/>`:'';
+  const last=se.values.length-1;
+  return `${ar}<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2.2"/>${se.values.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="${i===last?4.5:3}" fill="${se.color}" stroke="#fff" stroke-width="${i===last?2:0}"><title>${esc(se.name)} · ${esc(labels[i])}: ${v}</title></circle>`).join('')}<text x="${x(last)-6}" y="${y(se.values[last])-9}" text-anchor="end" style="font-weight:700;fill:${se.color}">${fmt(se.values[last])}</text>`;}).join('');
+ return `<svg class="chart" viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="${esc(series.map(s=>s.name).join(', '))}">${g}${s}</svg>`+(series.length>1?`<div class="legend">${series.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>`:'');
+}
+
+/* =====================================================================
+   Manager's dataset (Executive demo)
+   ===================================================================== */
+const MH=[
+ ['Dr. Jane Smith','Mount Sinai Hospital','IBD Specialist','High','North America',96,9.8,9.7,18],
+ ['Dr. Michael Chen','Mayo Clinic','Gastroenterology','High','North America',94,9.6,9.5,12],
+ ['Dr. Sarah Williams',"King's College Hospital",'IBD Specialist','High','Europe',91,9.4,9.3,24],
+ ['Dr. David Müller','Charité Berlin','Gastroenterology','High','Europe',89,9.2,9.1,9],
+ ['Dr. Priya Sharma','AIIMS New Delhi','IBD Specialist','High','Asia Pacific',87,9.0,8.8,32],
+ ['Dr. James Anderson','Cleveland Clinic','Gastroenterology','High','North America',88,8.8,8.8,7],
+ ['Dr. Elena Rossi','San Raffaele Hospital','Clinical Research','High','Europe',85,8.7,8.6,21],
+ ['Dr. Yuki Tanaka','University of Tokyo','IBD Specialist','High','Asia Pacific',84,8.5,8.4,28],
+ ['Dr. Robert Garcia','Hospital Clínic Barcelona','Gastroenterology','High','Europe',82,8.3,8.3,-3],
+ ['Dr. Amina Hassan','King Faisal Hospital','Clinical Research','High','Middle East',80,8.1,8.1,35],
+ ['Dr. Lucas Silva','São Paulo University','IBD Specialist','Medium','Latin America',79,7.9,7.9,19],
+ ['Dr. Emily Johnson','Johns Hopkins','Gastroenterology','Medium','North America',78,7.7,7.8,8],
+ ['Dr. Oliver Brown','Oxford University Hospital','Clinical Research','Medium','Europe',76,7.5,7.5,-5],
+ ['Dr. Sofia Martinez','Hospital Italiano','IBD Specialist','Medium','Latin America',73,7.2,7.3,27],
+ ['Dr. Wei Zhang','Peking Union Medical College','Gastroenterology','Medium','Asia Pacific',71,6.9,7.0,16],
+ ['Dr. Noah Wilson','University of Toronto','Clinical Research','Medium','North America',68,6.6,6.7,11],
+ ['Dr. Fatima Al-Sayed','Dubai Health','IBD Specialist','Medium','Middle East',65,6.3,6.4,14],
+ ['Dr. Anna Kowalski','Warsaw Medical University','Gastroenterology','Low','Europe',62,5.9,6.1,6],
+ ['Dr. Daniel Lee','Seoul National University','Clinical Research','Low','Asia Pacific',58,5.5,5.7,-2],
+ ['Dr. Isabella Costa','Porto University Hospital','IBD Specialist','Low','Europe',54,4.8,5.1,4]
+].map((r,i)=>({id:i+1,name:r[0],inst:r[1],spec:r[2],prio:r[3],region:r[4],align:r[5],eng:r[6],infl:r[7],trend:r[8]}));
+const PUBTR={1:[24,6],3:[22,5],5:[17,7],8:[16,6],10:[18,5],14:[9,4]};
+MH.forEach(h=>{const k=PUBTR[h.id];h.pubs=k?k[0]:Math.round(h.eng*2.3-3);h.trials=k?k[1]:Math.max(1,Math.round(h.eng*0.6-1));});
+const mh=id=>MH.find(h=>h.id===+id);
+const REGIONS=['North America','Europe','Asia Pacific','Latin America','Middle East'];
+const SPECS=['IBD Specialist','Gastroenterology','Clinical Research'];
+const trendHtml=t=>`<span class="${t>=0?'up':'dn'}">${t>=0?'+':'−'}${Math.abs(t)}%</span>`;
+const whoCell=h=>`<div class="who3"><span class="ini">${ini(h.name)}</span><div><b>${esc(h.name)}</b><span>${esc(h.inst)}</span></div></div>`;
+
+/* =====================================================================
+   Router
+   ===================================================================== */
+const ROUTES=[
+ ['dashboard','Executive dashboard','home'],['explorer','HCP explorer','search'],['signals','Engagement signals','pulse'],
+ ['engine','AI engagement engine','brain'],['recommendations','Results & recommendations','check'],['leaderboard','Influencer leaderboard','trophy'],
+ ['emerging','Emerging influencers','rise'],['command-center','Command center','target']
+];
+const ST={route:'dashboard',hcp:1,etab:'overview',dash:{region:'',spec:'',period:'This quarter',top:'top'},ex:{region:'',spec:'',prio:'',inst:'',score:'',pubs:'',trials:false},
+ sig:{filter:'All signals',live:true,items:[],timer:null,seq:0},lb:{region:'',sort:'eng'},rec:{hcp:1,done:{}},engRun:'idle'};
+function parseHash(){
+ const h=(location.hash||'').replace('#','');
+ if(/^hcp-\d+$/.test(h)){ST.route='hcp';ST.hcp=+h.split('-')[1];}
+ else if(h==='engine-live'){ST.route='engine';ST.etab='live';}
+ else if(ROUTES.some(r=>r[0]===h)){ST.route=h;if(h==='engine'&&ST.etab==='live'&&!location.hash.includes('live'))ST.etab='overview';}
+ else ST.route='dashboard';
+}
+function nav(r){const h=r;if(location.hash.replace('#','')===h)render();else location.hash=h;}
+window.addEventListener('hashchange',()=>{parseHash();render();window.scrollTo({top:0});});
+function renderWs(){
+ const cur=ST.route==='hcp'?'explorer':ST.route;
+ $('ws').innerHTML=`<span class="lab">INTELLIGENCE WORKSPACE</span>`+ROUTES.map(([k,l,i])=>`<button type="button" data-route="${k}"${cur===k?' aria-current="page"':''}>${ic(i)}<span>${l}</span>${k==='signals'?`<span class="bdg">${12+ST.sig.seq}</span>`:k==='engine'?'<span class="bdg ai">AI</span>':''}</button>`).join('');
+}
+const header=(crumb,title,sub,extra='')=>`
+ <div class="crumb">Medical Affairs / <b>${esc(crumb)}</b></div>
+ <div class="phd"><div><span class="eyebrow">Medical Affairs intelligence</span><h1>${esc(title)}</h1><p>${esc(sub)}</p></div>
+  <div class="acts"><span class="period">Q4 2026</span><button class="btn" type="button" data-act="export">Export report</button>${extra}</div></div>`;
+const footer=()=>`<div class="foot"><span>© 2026 Takeda Medical Affairs · IBD Scientific Engagement Intelligence</span><span>Synthetic data · Executive demo</span></div>`;
+function render(){
+ if(ST.route!=='engine'||ST.etab!=='live'){if(S&&S.running)setRunning(false);}
+ renderWs();
+ const P=PAGES[ST.route]||PAGES.dashboard;
+ $('content').innerHTML=P()+footer();
+ const after=AFTER[ST.route];if(after)after();
+}
+
+/* =====================================================================
+   Manager pages
+   ===================================================================== */
+const PAGES={},AFTER={};
+
+PAGES.dashboard=()=>{
+ const d=ST.dash;
+ return header('Executive dashboard','Executive dashboard','A connected view of scientific influence. Smarter engagement. Greater impact.','<button class="btn primary" type="button" data-route="engine">Run AI analysis</button>')+`
+ <div class="filters">
+  <select class="sel" id="d-region" aria-label="Region"><option value="">All regions</option>${REGIONS.map(r=>`<option${d.region===r?' selected':''}>${r}</option>`).join('')}</select>
+  <select class="sel" id="d-spec" aria-label="Specialty"><option value="">All specialties</option>${SPECS.map(r=>`<option${d.spec===r?' selected':''}>${r}</option>`).join('')}</select>
+  <select class="sel" id="d-period" aria-label="Time range">${['This quarter','This month','Last quarter'].map(r=>`<option${d.period===r?' selected':''}>${r}</option>`).join('')}</select>
+  <span class="small muted" style="margin-left:auto">Last updated today, 12:02 UTC</span></div>
+ <div class="kp6">
+  <button type="button" class="kpi" data-explore="|||"><span class="l">Total HCPs</span><span class="v num">1,248</span><span class="s"><span class="up">+8.2%</span> vs. last quarter</span></button>
+  <button type="button" class="kpi" data-route="leaderboard"><span class="l">Top influencers</span><span class="v num">86</span><span class="s"><span class="up">+12.4%</span> vs. last quarter</span></button>
+  <button type="button" class="kpi" data-route="emerging"><span class="l">Emerging influencers</span><span class="v num">124</span><span class="s"><span class="up">+18.6%</span> vs. last quarter</span></button>
+  <button type="button" class="kpi" data-explore="High"><span class="l">High priority</span><span class="v num">424</span><span class="s"><span class="up">+9.8%</span> · 34% of total HCPs</span></button>
+  <button type="button" class="kpi" data-explore="Medium"><span class="l">Medium priority</span><span class="v num">512</span><span class="s"><span class="up">+5.3%</span> · 41% of total HCPs</span></button>
+  <button type="button" class="kpi" data-explore="Low"><span class="l">Low priority</span><span class="v num">312</span><span class="s"><span class="up">+2.1%</span> · 25% of total HCPs</span></button>
+ </div>
+ <div class="g3">
+  <div class="card"><h3>Priority segmentation</h3><p class="sub">Scientific engagement prioritization</p>${donut()}</div>
+  <div class="card" style="grid-column:span 2"><h3>Top 15 HCP scores <span class="chips"><button type="button" class="chip" data-top="top" aria-pressed="${d.top==='top'}">Top influencers</button><button type="button" class="chip" data-top="all" aria-pressed="${d.top==='all'}">All ranked physicians</button></span></h3><p class="sub">AI-powered scientific engagement score · Score /10</p><div class="hbars" id="top15"></div></div>
+ </div>
+ <div class="g3">
+  <div class="card"><h3>HCP distribution <button type="button" class="lnk" data-route="explorer">Explore</button></h3><p class="sub">Scientific reach across regions</p>
+   <div class="hbars">${[['North America',486,39],['Europe',398,32],['Asia Pacific',224,18],['Latin America & Middle East',140,11]].map(([n,v,p])=>`<div class="hb"><span class="nm2">${n}</span><span class="tr"><span style="width:${p/39*100}%"></span></span><span class="num small">${v}</span></div>`).join('')}</div>
+   <p class="small muted" style="margin-top:10px">5 regions · 32 countries</p></div>
+  <div class="card" style="grid-column:span 2"><h3>Monthly engagement activity <span class="up small">+24.8% vs. previous period</span></h3><p class="sub">Scientific signals and interactions over time (Aug–Oct vs. May–Jul)</p>
+   ${lineChart({labels:['May','Jun','Jul','Aug','Sep','Oct'],series:[{name:'MSL interactions',color:'#c8102e',values:[190,208,201,232,245,270]},{name:'Scientific publications',color:'#2e7d5b',values:[68,74,71,80,86,100]}],ymax:300,h:200})}</div>
+ </div>
+ <div class="g12">
+  <div class="card"><h3>AI intelligence brief</h3><p class="sub">Signals that matter. Actions that make a difference.</p>
+   <div class="brief"><button type="button" data-route="emerging"><span class="n">5</span><span><b>HCPs show rapidly increasing engagement</b><span>Scientific activity is accelerating across key IBD thought leaders.</span></span></button>
+   <button type="button" data-route="signals"><span class="n">3</span><span><b>KOLs published new research this month</b><span>New publications highlight evolving treatment approaches.</span></span></button>
+   <button type="button" data-route="recommendations"><span class="n">2</span><span><b>Emerging influencers moved to high priority</b><span>Recommended for proactive scientific engagement.</span></span></button></div></div>
+  <div class="card"><h3>Top influential HCPs <button type="button" class="lnk" data-route="leaderboard">View leaderboard</button></h3><p class="sub">Leading voices shaping the IBD scientific landscape · Ranked by scientific engagement</p>
+   <div class="tablewrap" style="border:0"><table class="t"><thead><tr><th>Rank</th><th>Physician</th><th>Engagement score</th><th>Priority</th><th>Trend</th></tr></thead><tbody id="dtop"></tbody></table></div>
+   <p class="small muted" style="margin-top:8px" id="dtopn"></p></div>
+ </div>
+ <div class="card"><h3>Scientific activity by region</h3><p class="sub">Intensity of scientific engagement · Last 6 months</p>${heatmap()}</div>`;
+};
+AFTER.dashboard=()=>dashUpdate();
+function dashFiltered(){const d=ST.dash;return MH.filter(h=>(!d.region||h.region===d.region)&&(!d.spec||h.spec===d.spec));}
+function dashUpdate(){
+ const rows=dashFiltered();
+ const list=(ST.dash.top==='top'?rows.filter(h=>h.prio==='High'):rows).slice(0,15);
+ $('top15').innerHTML=list.length?list.map(h=>`<div class="hb" style="cursor:pointer" data-hcpp="${h.id}"><span class="nm2">${esc(h.name)}</span><span class="tr"><span style="width:${h.eng*10}%"></span></span><span class="num small">${h.eng.toFixed(1)}</span></div>`).join(''):'<p class="muted">No physicians match these filters.</p>';
+ $('dtop').innerHTML=rows.slice(0,5).map((h,i)=>`<tr class="click" data-hcpp="${h.id}"><td class="num">#${h.id}</td><td>${whoCell(h)}</td><td class="num"><b>${h.eng.toFixed(1)}</b> /10</td><td><span class="prio ${h.prio}">${h.prio} priority</span></td><td>${trendHtml(h.trend)}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">No physicians match these filters.</td></tr>';
+ $('dtopn').textContent=`Showing ${Math.min(5,rows.length)} of 1,248 physicians`;
+}
+function donut(){
+ const parts=[['High',424,'#c8102e'],['Medium',512,'#e8a33d'],['Low',312,'#b9adaf']],tot=1248;
+ let a=-Math.PI/2,arcs='';const R=70,r=46,cx=90,cy=90;
+ parts.forEach(([n,v,c])=>{const b=a+2*Math.PI*v/tot;const L=b-a>Math.PI?1:0;
+  const p=(ang,rr)=>`${cx+rr*Math.cos(ang)} ${cy+rr*Math.sin(ang)}`;
+  arcs+=`<path d="M${p(a,R)} A${R} ${R} 0 ${L} 1 ${p(b,R)} L${p(b,r)} A${r} ${r} 0 ${L} 0 ${p(a,r)}Z" fill="${c}"><title>${n}: ${v}</title></path>`;a=b;});
+ return `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><svg viewBox="0 0 180 180" width="160" role="img" aria-label="Priority split">${arcs}<text x="90" y="88" text-anchor="middle" style="font-family:var(--display);font-weight:800;font-size:22px;fill:var(--fg)">1,248</text><text x="90" y="106" text-anchor="middle" style="font-size:10.5px;fill:var(--muted)">Total physicians</text></svg>
+  <div class="health" style="flex:1;min-width:140px">${parts.map(([n,v,c])=>`<div><span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};margin-right:6px"></i>${n}</span><span class="num">${v} · ${Math.round(v/tot*100)}%</span></div>`).join('')}</div></div>`;
+}
+function heatmap(){
+ const M=['May','Jun','Jul','Aug','Sep','Oct'];
+ const V={'North America':[62,78,54,86,92,98],'Europe':[51,67,43,75,81,87],'Asia Pacific':[40,56,32,64,70,76],'Latin America':[29,45,21,53,59,65],'Middle East':[18,34,10,42,48,54]};
+ const col=v=>{const t=v/100;return `rgb(${Math.round(251-(251-200)*t)} ${Math.round(232-(232-16)*t)} ${Math.round(235-(235-46)*t)})`;};
+ return `<div style="overflow-x:auto"><table class="heat"><thead><tr><th></th>${M.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>${Object.entries(V).map(([r,vs])=>`<tr><th>${r}</th>${vs.map(v=>`<td style="background:${col(v)};color:${v>55?'#fff':'var(--fg)'}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <div class="legend"><span>Activity intensity: Low</span>${[15,40,65,90].map(v=>`<span><i style="background:${col(v)}"></i></span>`).join('')}<span>High</span></div>`;
+}
+
+PAGES.explorer=()=>{
+ const e=ST.ex;const insts=[...new Set(MH.map(h=>h.inst))];
+ return header('HCP explorer','HCP explorer','Discover the scientific voices that matter. Build meaningful connections.')+`
+ <div class="card"><div class="filters">
+  <select class="sel" id="x-region" aria-label="Region"><option value="">All regions</option>${REGIONS.map(r=>`<option${e.region===r?' selected':''}>${r}</option>`).join('')}</select>
+  <select class="sel" id="x-spec" aria-label="Specialty"><option value="">All specialties</option>${SPECS.map(r=>`<option${e.spec===r?' selected':''}>${r}</option>`).join('')}</select>
+  <select class="sel" id="x-prio" aria-label="Priority"><option value="">All priorities</option>${['High','Medium','Low'].map(r=>`<option${e.prio===r?' selected':''}>${r}</option>`).join('')}</select>
+  <select class="sel" id="x-inst" aria-label="Institution"><option value="">All institutions</option>${insts.map(r=>`<option${e.inst===r?' selected':''}>${esc(r)}</option>`).join('')}</select>
+  <select class="sel" id="x-score" aria-label="Engagement score"><option value="">Any engagement score</option><option value="8"${e.score==='8'?' selected':''}>Score 8+</option><option value="9"${e.score==='9'?' selected':''}>Score 9+</option></select>
+  <select class="sel" id="x-pubs" aria-label="Publication count"><option value="">Any publication count</option><option value="10"${e.pubs==='10'?' selected':''}>10+ publications</option><option value="20"${e.pubs==='20'?' selected':''}>20+ publications</option></select>
+  <label class="chk"><input type="checkbox" id="x-trials"${e.trials?' checked':''}>5+ clinical trials</label>
+  <button class="btn sm" type="button" data-act="xreset">Reset</button></div></div>
+ <div class="filters"><b id="xcount"></b><span class="small muted">Ranked by scientific engagement score</span></div>
+ <div class="tablewrap"><table class="t"><thead><tr><th>Rank</th><th>Physician</th><th>Specialty</th><th>Priority</th><th>Region</th><th>Alignment</th><th>Engagement</th><th>Trend</th><th></th></tr></thead><tbody id="xbody"></tbody></table></div>`;
+};
+AFTER.explorer=()=>exUpdate();
+function exUpdate(){
+ const e=ST.ex;
+ const rows=MH.filter(h=>(!e.region||h.region===e.region)&&(!e.spec||h.spec===e.spec)&&(!e.prio||h.prio===e.prio)&&(!e.inst||h.inst===e.inst)&&(!e.score||h.eng>=+e.score)&&(!e.pubs||h.pubs>=+e.pubs)&&(!e.trials||h.trials>=5));
+ $('xcount').textContent=`${rows.length} physician${rows.length===1?'':'s'}`;
+ $('xbody').innerHTML=rows.map(h=>`<tr class="click" data-hcpp="${h.id}"><td class="num">${h.id}</td><td>${whoCell(h)}</td><td>${esc(h.spec)}</td><td><span class="prio ${h.prio}">${h.prio}</span></td><td>${esc(h.region)}</td><td class="num">${h.align}/100</td><td class="num"><b>${h.eng.toFixed(1)}</b>/10</td><td>${trendHtml(h.trend)}</td><td><button class="btn sm" type="button" data-hcpp="${h.id}">View profile</button></td></tr>`).join('')||'<tr><td colspan="9" class="empty"><b>No physicians match these filters</b>Change a filter or press Reset.</td></tr>';
+}
+
+/* ---------- signals ---------- */
+const SIGTYPES={'Publication':['PUB','var(--accent-soft)','var(--accent)'],'MSL Interaction':['MSL','var(--good-soft)','var(--good-deep)'],'Congress':['CON','var(--warn-soft)','var(--warn)'],'Clinical Trial':['CT','var(--blue-soft)','var(--blue)'],'Advisory Board':['ADV','var(--purple-soft)','var(--purple)'],'Peer Recognition':['PR','#eef0f2','#4d5862']};
+const SIG0=[
+ ['Publication','New research on biologic treatment sequencing',1,"Journal of Crohn's and Colitis · Peer-reviewed publication",'12 minutes ago',0.8],
+ ['MSL Interaction','Scientific exchange on emerging IBD therapies',2,'Medical science liaison · North America','38 minutes ago',0.5],
+ ['Congress','Invited plenary speaker at UEG Week',3,'Vienna, Austria · Scientific leadership','1 hour ago',0.7],
+ ['Clinical Trial','Appointed principal investigator for IBD study',5,'Phase III · Multicenter clinical trial','2 hours ago',0.9],
+ ['Advisory Board','Participated in scientific advisory board',7,'Treatment optimization · European region','3 hours ago',0.6],
+ ['Peer Recognition','Recognized for patient advocacy leadership',10,'Regional IBD network · Scientific community','4 hours ago',0.3]
+];
+const SIGNEW=[
+ ['Publication','Real-world persistence data in ulcerative colitis','Inflammatory Bowel Diseases · Peer-reviewed publication',0.8],
+ ['MSL Interaction','Scientific discussion on histologic remission targets','Medical science liaison · follow-up requested',0.5],
+ ['Congress','Accepted oral abstract at ECCO 2027','Scientific leadership · International congress',0.6],
+ ['Clinical Trial','Site activated for Phase III maintenance study','Clinical trial · Principal investigator',0.9],
+ ['Advisory Board','Invited to regional advisory board on sequencing','Treatment optimization · Advisory input',0.6],
+ ['Peer Recognition','Named to national IBD guideline working group','Guideline contribution · Peer recognition',0.4]
+];
+ST.sig.items=SIG0.map(s=>({type:s[0],title:s[1],hid:s[2],detail:s[3],when:s[4],impact:s[5]}));
+PAGES.signals=()=>header('Engagement signals','Engagement signals','Follow the scientific activity shaping influence, in near real time.')+`
+ <div class="filters"><div class="chips">${['All signals',...Object.keys(SIGTYPES)].map(f=>`<button type="button" class="chip" data-sigf="${f}" aria-pressed="${ST.sig.filter===f}">${f}</button>`).join('')}</div>
+  <span style="flex:1"></span><button class="btn primary" type="button" data-act="simsig">Simulate new signal</button>
+  <label class="tog"><input type="checkbox" id="s-live"${ST.sig.live?' checked':''}>Live feed enabled</label></div>
+ <div class="g21">
+  <div class="card"><h3>Scientific activity timeline <span class="small muted" style="font-family:var(--body);font-weight:500">Latest activity · October 10, 2026</span></h3><p class="sub" id="sigcount"></p><div class="sigt" id="sigt"></div></div>
+  <div class="grid" style="align-content:start">
+   <div class="card"><h3>Dynamic signal contribution</h3><p class="sub">Scientific activity powering engagement scores</p>
+    <div class="hbars">${[['MSL interactions',32],['Scientific publications',26],['Clinical trials',18],['Congress participation',14],['Advisory boards',10]].map(([n,v])=>`<div class="hb"><span class="nm2">${n}</span><span class="tr"><span style="width:${v/32*100}%"></span></span><span class="num small">${v}%</span></div>`).join('')}</div></div>
+   <div class="card"><h3>Engagement activity trend</h3><p class="sub">Quarterly scientific momentum (signals per quarter)</p>${lineChart({labels:['Q1','Q2','Q3','Q4'],series:[{name:'Scientific signals',color:'#c8102e',values:[4120,4680,5310,6045]}],ymax:7000,ymin:3000,h:170,area:true,fmt:v=>fmtN(v)})}</div>
+   <div class="card"><h3>Signal quality <span class="prio Low">Demo model</span></h3><p class="sub">VALIDATED SCIENTIFIC SIGNALS</p><p class="small muted">Signals are assessed for scientific relevance, source credibility, and engagement impact.</p><p style="margin-top:8px"><b class="num" style="font-size:26px;font-family:var(--display)">98.4%</b> <span class="muted">source confidence</span></p></div>
+  </div></div>`;
+AFTER.signals=()=>{sigUpdate();sigLoop();};
+function sigUpdate(fresh){
+ const f=ST.sig.filter;const items=ST.sig.items.filter(s=>f==='All signals'||s.type===f);
+ $('sigcount').textContent=`TODAY · ${ST.sig.items.length} SCIENTIFIC SIGNALS`;
+ $('sigt').innerHTML=items.map((s,i)=>{const [ab,bg,fg]=SIGTYPES[s.type];const h=mh(s.hid);
+  return `<div class="sg${fresh&&i===0?' new':''}"><span class="ico" style="background:${bg};color:${fg}">${ab}</span><div style="min-width:0"><span class="ty" style="color:${fg}">${esc(s.type)}</span><b>${esc(s.title)}</b><span class="d"><button class="lnk" type="button" data-hcpp="${h.id}">${esc(h.name)}</button> · ${esc(s.detail)}</span></div>
+  <div class="r"><span>${esc(s.when)}</span><span class="pts">+${s.impact.toFixed(1)}</span><span class="prio ${h.prio}">${h.prio} priority</span></div></div>`;}).join('')||'<div class="empty"><b>No signals of this type yet</b>Press “Simulate new signal”.</div>';
+}
+function simSignal(){
+ const r=Math.random;const t=SIGNEW[Math.floor(r()*SIGNEW.length)];const h=MH[Math.floor(r()*12)];
+ ST.sig.items.unshift({type:t[0],title:t[1],hid:h.id,detail:t[2],when:'Just now',impact:t[3]});
+ ST.sig.items.slice(1).forEach(s=>{if(s.when==='Just now')s.when='1 minute ago';});
+ ST.sig.seq++;renderWs();
+ if(ST.route==='signals')sigUpdate(true);
+}
+function sigLoop(){clearTimeout(ST.sig.timer);if(ST.route!=='signals'||!ST.sig.live)return;ST.sig.timer=setTimeout(()=>{if(ST.route==='signals'&&ST.sig.live){simSignal();sigLoop();}},9000);}
+
+/* ---------- engine ---------- */
+PAGES.engine=()=>header('AI engagement engine','AI scientific engagement engine','Connect scientific signals. Understand influence. Unlock the next opportunity.')+`
+ <div class="etabs" role="tablist"><button type="button" role="tab" data-etab="overview" aria-selected="${ST.etab==='overview'}">Engine overview</button><button type="button" role="tab" data-etab="live" aria-selected="${ST.etab==='live'}">Live dynamic scoring <span class="livepill">LIVE</span></button></div>
+ ${ST.etab==='overview'?engineOverview():engineLive()}`;
+AFTER.engine=()=>{if(ST.etab==='live'){dmount();updateBar();if(!S.booted){S.booted=true;boot();}}};
+function engineOverview(){
+ const steps=[['Collecting data','Publications, trials, MSL interactions and congress activity'],['Analyzing scientific signals','Source relevance, recency and scientific impact'],['Generating features','Weighted scientific indicators and engagement features'],['Building influence network','Peer connections and collaborative research'],['Calculating engagement score','Quarterly alignment combined with dynamic activity'],['Predicting future influence','Emerging influencer trajectory and confidence']];
+ const W=[['Clinical Outcomes',5],['Practice Characteristics',10],['Scientific Exchange',10],['Patient Burden',20],['Treatment Experience',20],['Scientific Leadership',15],['Other Strategic Factors',20]];
+ return `<div class="cta"><div><b>See the engine work in real time</b><span>Stream new scientific signals and watch quarterly deciles and dynamic scores update, with every change explained.</span></div><button class="btn primary" type="button" data-etab="live">Open live dynamic scoring →</button></div>
+ <div class="g2">
+  <div class="card"><h3>Scientific intelligence pipeline <span class="prio High">AI ENGINE</span></h3><p class="sub">Explainable engagement scoring · Simulated analysis</p>
+   <div class="steps">${steps.map(([t,s],i)=>`<div class="stp" id="es${i}"><span class="n">${i+1}</span><span><b>${t}</b><small>${s}</small></span><span class="st2" id="et${i}">Ready</span></div>`).join('')}</div>
+   <div class="filters" style="margin-top:12px"><span class="muted" id="estat">Ready to analyze 1,248 HCPs</span><span style="flex:1"></span><button class="btn primary" type="button" data-act="runeng" id="erun">Run analysis</button></div></div>
+  <div class="card"><h3>Scientific knowledge graph</h3><p class="sub">Relationships connecting HCPs to scientific activity</p>${kgraph()}
+   <div class="mets"><div><b class="num">8,426</b><span>Scientific connections</span></div><div><b class="num">24,891</b><span>Signals analyzed</span></div><div><b class="num">94.6%</b><span>Confidence</span></div></div>
+   <p class="note">Quarterly alignment anchors the score. Dynamic signals reflect new scientific activity and engagement momentum.</p></div>
+ </div>
+ <div class="g2">
+  <div class="card"><h3>Quarterly alignment model</h3><p class="sub">Static strategic alignment · Specified weighting</p><div class="wt">${W.map(([n,v])=>`<div><span>${n}</span><span class="tr"><span style="width:${v/20*100}%"></span></span><b class="num">${v}%</b></div>`).join('')}</div></div>
+  <div class="card"><h3>Scientific feature engineering</h3><p class="sub">From individual signals to interpretable intelligence</p><div class="fe">${[['Source validation & deduplication','Peer-reviewed sources and validated engagement records'],['Scientific relevance & recency weighting','IBD-specific scientific context and relevance'],['HCP network influence aggregation','Research collaborators, co-authors, and thought leaders'],['Engagement signal normalization','Comparable scientific scores across geographies'],['Future influence trajectory estimation','Forward-looking opportunity identification']].map(([t,s],i)=>`<div><span class="n">${i+1}</span><span><b>${t}</b><span>${s}</span></span></div>`).join('')}</div></div>
+ </div>`;
+}
+function kgraph(){
+ const nodes=[['Trials',-1],['Research',-1],['Peers',-1],['Congress',-1],['MSL',-1],['Policy',-1],['IBD',-1]];
+ const cx=170,cy=118,R=86;
+ let lines='',dots='';
+ nodes.forEach(([n],i)=>{const a=-Math.PI/2+i*2*Math.PI/nodes.length;const x=cx+R*Math.cos(a)*1.45,y=cy+R*Math.sin(a);
+  lines+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e7c4ca" stroke-width="1.5"/>`;
+  const j=(i+2)%nodes.length,b=-Math.PI/2+j*2*Math.PI/nodes.length;lines+=`<line x1="${x}" y1="${y}" x2="${cx+R*Math.cos(b)*1.45}" y2="${cy+R*Math.sin(b)}" stroke="#f1e2e4" stroke-width="1"/>`;
+  dots+=`<circle cx="${x}" cy="${y}" r="25" fill="#fff" stroke="#c8102e" stroke-width="1.5"/><text x="${x}" y="${y+3.5}" text-anchor="middle" style="font-size:9.5px;font-weight:700;fill:var(--fg)">${n}</text>`;});
+ return `<svg class="chart" viewBox="0 0 340 236" width="100%" style="max-width:420px;display:block;margin:0 auto" role="img" aria-label="Knowledge graph">${lines}${dots}<circle cx="${cx}" cy="${cy}" r="28" fill="#c8102e"/><text x="${cx}" y="${cy+4}" text-anchor="middle" style="font-size:12px;font-weight:800;fill:#fff">HCP</text></svg>`;
+}
+function runEngine(){
+ if(ST.engRun==='running')return;ST.engRun='running';
+ const b=$('erun');if(b)b.disabled=true;
+ let i=0;const n=6;
+ const step=()=>{
+  if(ST.route!=='engine'||ST.etab!=='overview'){ST.engRun='idle';return;}
+  if(i>0){$('es'+(i-1)).className='stp ok';$('et'+(i-1)).textContent='Complete';}
+  if(i<n){$('es'+i).className='stp run';$('et'+i).textContent='Running…';$('estat').textContent=`Analyzing 1,248 HCPs · step ${i+1} of ${n}`;i++;setTimeout(step,700);}
+  else{$('estat').innerHTML='<span class="up">Analysis complete</span> · 1,248 HCPs scored · 24,891 signals';ST.engRun='idle';b.disabled=false;b.textContent='Run again';toastMsg('AI analysis complete: 2 HCPs moved to high priority');}
+ };step();
+}
+function engineLive(){
+ return `<div class="dbar" role="toolbar" aria-label="Presenter controls">
+   <span class="live" id="live"><i></i><span id="liveTxt">Paused</span></span>
+   <span class="clock"><span>Demo clock</span><b class="num" id="clock"></b></span>
+   <span class="sp"></span>
+   <button class="btn primary" id="play" type="button" data-act="play">▶ Start live feed</button>
+   <button class="btn" type="button" data-act="step" title="Process the next signal">Next signal</button>
+   <span class="seg" role="group" aria-label="Speed"><button type="button" data-speed="1" aria-pressed="true">1×</button><button type="button" data-speed="3" aria-pressed="false">3×</button></span>
+   <button class="btn ghost" id="dreset" type="button" data-act="dreset">Reset demo</button>
+  </div>
+  <nav class="dtabs" id="dnav" aria-label="Live demo views"></nav>
+  <div id="dpage"></div>`;
+}
+
+/* ---------- recommendations ---------- */
+PAGES.recommendations=()=>{
+ const h=mh(ST.rec.hcp);const jane=h.id===1;
+ const prev=jane?5.0:Math.max(3,Math.round((h.eng-2.6-(h.trend/20))*10)/10),now=h.eng>9.7?10.0:jane?10.0:h.eng;
+ const drivers=jane?[['2 new IBD publications',2.0],['3 MSL interactions',1.5],['1 advisory board participation',1.0],['4 scientific mentions',0.5]]
+  :(()=>{const d=now-prev;return [['New IBD publications',+(d*.4).toFixed(1)],['MSL interactions',+(d*.3).toFixed(1)],['Congress & advisory activity',+(d*.2).toFixed(1)],['Scientific mentions',+(d*.1).toFixed(1)]];})();
+ const traj=jane?[5.0,5.4,6.1,7.2,8.6,10.0]:[0,1,2,3,4,5].map(i=>+(prev+(now-prev)*Math.pow(i/5,1.4)).toFixed(1));
+ const acts=[['Schedule scientific exchange','Discuss evolving treatment sequencing in IBD'],['Invite to advisory board','Contribute expertise to strategic scientific discussion'],['Include in clinical initiatives','Explore research collaboration opportunities'],['Share scientific publications','Share relevant peer-reviewed IBD evidence'],['Engage at upcoming congress','Arrange a focused scientific meeting at UEG Week']];
+ return header('Results & recommendations','Results & recommendations','Turn scientific intelligence into purposeful Medical Affairs engagement.')+`
+ <div class="g12" style="grid-template-columns:minmax(0,.7fr) minmax(0,2.3fr)">
+  <div class="card"><h3>HCPs</h3><p class="sub">Analysis complete</p><div class="hlist">${MH.slice(0,8).map(x=>`<button type="button" data-rech="${x.id}" aria-pressed="${x.id===h.id}"><span class="ini">${ini(x.name)}</span>${esc(x.name)}</button>`).join('')}</div></div>
+  <div class="grid">
+   <div class="g2">
+    <div class="card"><h3>Scientific engagement score evolution <span class="prio ${h.prio}">${h.prio} priority</span></h3><p class="sub">${esc(h.name)} · ${jane?'Illustrative signal-driven scoring scenario':'Illustrative scenario'}</p>
+     <div class="scorebox"><div class="sb a"><span class="k">Previous quarterly score</span><div class="n num">${prev.toFixed(1)}</div><span class="c">/10 · Low engagement</span></div><div class="arrow">${ic('right')}</div><div class="sb b"><span class="k">Updated engagement score</span><div class="n num">${now.toFixed(1)}</div><span class="c">/10 · High scientific influence</span></div></div>
+     <div class="drv">${drivers.map(([n,v])=>`<div><span>${n}</span><span class="pts">+${v.toFixed(1)}</span><span class="small muted num">${Math.round(v*10)}%</span></div>`).join('')}</div>
+     <p style="margin-top:10px"><b>Overall increase:</b> <span class="up">+${Math.round((now-prev)*10)}%</span></p>
+     ${jane?`<button class="lnk" type="button" data-livejane style="margin-top:8px">See this happen live in the AI engagement engine →</button>`:''}</div>
+    <div class="card"><h3>Engagement score trajectory</h3><p class="sub">Increasing scientific engagement over the last six months</p>${lineChart({labels:['May','Jun','Jul','Aug','Sep','Oct'],series:[{name:'Engagement score',color:'#2e7d5b',values:traj}],ymax:10,ymin:0,h:220,area:true})}</div>
+   </div>
+   <div class="card"><h3>Recommended engagement actions</h3><p class="sub">Prioritized opportunities for scientific exchange</p>
+    <div class="recs">${acts.map(([t,s],i)=>{const done=ST.rec.done[h.id+'-'+i];return `<div class="rec${done?' done':''}"><span class="n">${i+1}</span><span><b>${t}</b><span>${s}</span></span><button class="btn sm" type="button" data-plan="${h.id}-${i}"${done?' disabled':''}>${done?'Planned ✓':'Plan'}</button></div>`;}).join('')}</div></div>
+  </div></div>`;
+};
+
+/* ---------- leaderboard ---------- */
+PAGES.leaderboard=()=>header('Influencer leaderboard','Influencer leaderboard','The physicians leading scientific progress in inflammatory bowel disease.')+`
+ <div class="filters"><select class="sel" id="l-region" aria-label="Region"><option value="">All regions</option>${REGIONS.map(r=>`<option${ST.lb.region===r?' selected':''}>${r}</option>`).join('')}</select>
+  <select class="sel" id="l-sort" aria-label="Sort by"><option value="eng"${ST.lb.sort==='eng'?' selected':''}>Engagement score</option><option value="align"${ST.lb.sort==='align'?' selected':''}>Alignment score</option><option value="trend"${ST.lb.sort==='trend'?' selected':''}>Growth momentum</option></select>
+  <span class="small muted" id="lcount" style="margin-left:auto"></span></div>
+ <div class="card" style="padding:0"><div style="padding:14px 16px 6px"><h3 style="font-size:15px">Scientific influence rankings</h3><p class="small muted">Quarterly alignment meets dynamic scientific engagement</p></div>
+ <div class="tablewrap" style="border:0;border-radius:0 0 12px 12px"><table class="t"><thead><tr><th>Rank</th><th>Physician</th><th>Region</th><th>Alignment</th><th>Engagement score</th><th>Influence score</th><th>Priority</th><th>Trend</th><th></th></tr></thead><tbody id="lbody"></tbody></table></div></div>`;
+AFTER.leaderboard=()=>lbUpdate();
+function lbUpdate(){
+ const k=ST.lb.sort;const rows=MH.filter(h=>!ST.lb.region||h.region===ST.lb.region).sort((a,b)=>b[k]-a[k]);
+ $('lcount').textContent=`${rows.length} ranked physicians · Q4 2026`;
+ $('lbody').innerHTML=rows.map((h,i)=>`<tr class="click" data-hcpp="${h.id}"><td class="num"><b>#${i+1}</b></td><td><div class="who3"><span class="ini">${ini(h.name)}</span><div><b>${esc(h.name)}</b><span>${esc(h.spec)} · ${esc(h.inst)}</span></div></div></td><td>${esc(h.region)}</td><td class="num">${h.align}/100</td><td class="num"><b>${h.eng.toFixed(1)}</b>/10</td><td class="num">${h.infl.toFixed(1)}</td><td><span class="prio ${h.prio}">${h.prio}</span></td><td>${trendHtml(h.trend)}</td><td><button class="lnk" type="button" data-hcpp="${h.id}">Profile →</button></td></tr>`).join('');
+}
+
+/* ---------- emerging ---------- */
+PAGES.emerging=()=>{
+ const g=[[10,18,35,8.1],[5,17,32,9.0],[8,16,28,8.5],[14,9,27,7.2],[3,22,24,9.4]];
+ const p=[[10,92,18,5,35],[5,87,17,7,32],[8,82,16,6,28],[14,77,9,4,27]];
+ return header('Emerging influencers','Emerging influencers','Identify the rising scientific voices shaping the future of IBD care.')+`
+ <div class="kp4">
+  <div class="kpi"><span class="l">Emerging thought leaders</span><span class="v num">124</span><span class="s"><span class="up">+18.6%</span> this quarter</span></div>
+  <div class="kpi"><span class="l">Rapidly rising HCPs</span><span class="v num">5</span><span class="s">Accelerating engagement</span></div>
+  <div class="kpi"><span class="l">New publications</span><span class="v num">38</span><span class="s">Across emerging influencers</span></div>
+  <div class="kpi"><span class="l">High-priority transitions</span><span class="v num">2</span><span class="s">Medium to high priority</span></div>
+ </div>
+ <div class="g21">
+  <div class="card"><h3>Top gainers</h3><p class="sub">Quarter-over-quarter scientific momentum</p>
+   <div class="tablewrap" style="border:0"><table class="t"><thead><tr><th>HCP</th><th>Publications</th><th>Momentum</th><th>Score</th></tr></thead><tbody>${g.map(([id,pb,m,s])=>{const h=mh(id);return `<tr class="click" data-hcpp="${id}"><td>${whoCell(h)}</td><td class="num">${pb}</td><td><span class="up">+${m}%</span></td><td class="num"><b>${s}</b>/10</td></tr>`;}).join('')}</tbody></table></div></div>
+  <div class="card"><h3>Predictive AI outlook</h3><p class="sub">Illustrative probability of becoming a top influencer · simulated 6-month forecast</p>
+   <div class="prob">${p.map(([id,pr,pb,tr,m])=>`<div><b>${esc(mh(id).name)}</b><b class="num" style="text-align:right">${pr}%</b><span class="tr"><span style="width:${pr}%"></span></span><small>${pb} publications · ${tr} clinical trials · +${m}% momentum</small></div>`).join('')}</div></div>
+ </div>
+ <div class="g21">
+  <div class="card"><h3>Scientific growth trend</h3><p class="sub">Activity momentum among emerging thought leaders (index, May = 100)</p>${lineChart({labels:['May','Jun','Jul','Aug','Sep','Oct'],series:[{name:'Emerging influencers',color:'#c8102e',values:[100,106,113,121,128,137]},{name:'All HCPs',color:'#b9adaf',values:[100,102,104,105,107,109]}],ymax:150,ymin:90,h:210})}</div>
+  <div class="card"><h3>Recent scientific milestones</h3><p class="sub">Last 30 days</p><div class="ms">
+   <div><i></i><span><b>Dr. Priya Sharma</b> · leadership of a new Phase III trial</span></div>
+   <div><i></i><span><b>Dr. Amina Hassan</b> · patient advocacy recognition</span></div>
+   <div><i></i><span><b>Dr. Yuki Tanaka</b> · international congress presentation</span></div>
+   <div><i></i><span><b>Dr. Sofia Martinez</b> · new IBD publication</span></div></div></div>
+ </div>`;
+};
+
+/* ---------- command center ---------- */
+PAGES['command-center']=()=>header('Command center','Medical Affairs command center','Your strategic view of opportunities, coverage, and scientific impact.','<button class="btn primary" type="button" data-route="engine">Run AI analysis</button>')+`
+ <div class="kp4">
+  <div class="kpi"><span class="l">KOL coverage</span><span class="v num">84.2%</span><span class="s"><span class="up">+6.3%</span> vs. last quarter</span></div>
+  <div class="kpi"><span class="l">Scientific exchange effectiveness</span><span class="v num">92%</span><span class="s">High-relevance interactions</span></div>
+  <div class="kpi"><span class="l">Engagement opportunities</span><span class="v num">28</span><span class="s">12 ready for action</span></div>
+  <div class="kpi down"><span class="l">High-risk engagement gaps</span><span class="v num">7</span><span class="s">Require proactive attention</span></div>
+ </div>
+ <div class="g2">
+  <div class="card"><h3>Top engagement opportunities</h3><p class="sub">Focus your next scientific conversations</p><div class="opp">
+   ${[[1,'New research publication creates timely exchange opportunity'],[2,'Strong scientific leadership · Advisory board candidate'],[3,'Upcoming UEG Week plenary speaker']].map(([id,t])=>`<div><span><b>${esc(mh(id).name)}</b><span>${t}</span></span><button class="btn sm primary" type="button" data-engage="${id}">Engage</button></div>`).join('')}</div></div>
+  <div class="card"><h3>High-risk engagement gaps</h3><p class="sub">Scientific relationships requiring attention</p><div class="opp">
+   ${[[9,90,'Europe'],[13,105,'Europe'],[19,120,'Asia Pacific']].map(([id,d,r])=>`<div class="gap"><span><b>${esc(mh(id).name)}</b><span>No scientific exchange in ${d} days · ${r}</span></span><button class="btn sm" type="button" data-engage="${id}">Re-engage</button></div>`).join('')}</div></div>
+ </div>
+ <div class="g3">
+  <div class="card"><h3>Upcoming scientific events</h3><p class="sub">Align engagement with scientific milestones</p>
+   ${[['17','OCT','UEG Week 2026','Vienna, Austria · 42 priority HCPs'],['6','NOV','IBD Scientific Advisory Board','London, UK · 12 scientific leaders'],['14','NOV','Regional IBD Research Forum','Singapore · 28 regional HCPs']].map(([d,m,t,s])=>`<div class="ev2"><span class="dt"><b>${d}</b><span>${m}</span></span><span><strong>${t}</strong><small>${s}</small></span></div>`).join('')}</div>
+  <div class="card"><h3>Regional scientific performance</h3><p class="sub">KOL coverage across key geographies</p>
+   <div class="hbars">${[['North America',91],['Europe',85],['Asia Pacific',79],['Latin America',73],['Middle East',67]].map(([n,v])=>`<div class="hb" style="grid-template-columns:110px minmax(0,1fr) 40px"><span class="nm2">${n}</span><span class="tr"><span style="width:${v}%"></span></span><span class="num small">${v}%</span></div>`).join('')}</div>
+   <p class="small muted" style="margin-top:10px">Coverage based on quarterly engagement · <button class="lnk" type="button" data-route="explorer">Explore HCPs</button></p></div>
+  <div class="card"><h3>AI-generated strategic recommendations</h3><p class="sub">Scientific intelligence to support your planning</p><div class="fe">
+   <div><span class="n">1</span><span><b>Expand scientific exchange in Asia Pacific</b><span>18% engagement growth and rising clinical research activity create a timely opportunity to strengthen scientific relationships.</span><br><button class="lnk" type="button" data-explore="||Asia Pacific|">View regional opportunities</button></span></div>
+   <div><span class="n">2</span><span><b>Prioritize emerging IBD thought leaders</b><span>Engage rapidly rising physicians through targeted scientific discussions and appropriate clinical initiatives.</span><br><button class="lnk" type="button" data-route="emerging">Explore emerging influencers</button></span></div></div></div>
+ </div>`;
+
+/* ---------- HCP profile ---------- */
+PAGES.hcp=()=>{
+ const h=mh(ST.hcp)||MH[0];
+ const pubs=h.id===1?[['Biologic treatment sequencing in moderate-to-severe IBD','October 2026','Lead contributor'],['Real-world outcomes in ulcerative colitis','September 2026','Scientific collaborator'],["Optimizing long-term disease control in Crohn's disease",'July 2026','Active participation']]
+  :[['Treat-to-target strategies in inflammatory bowel disease','September 2026','Lead contributor'],['Histologic endpoints in ulcerative colitis trials','June 2026','Scientific collaborator'],['Patient-reported outcomes in IBD practice','March 2026','Active participation']];
+ const dims=[['Publications',Math.min(10,h.pubs/2.4)],['Clinical trials',Math.min(10,h.trials*1.4)],['Congress',h.eng-0.3],['Advisory',h.eng-0.8],['Peer network',h.infl],['MSL exchange',h.eng-0.4]].map(([n,v])=>[n,clamp(+v.toFixed(1),1,10)]);
+ return `<div class="crumb">Medical Affairs / <b>HCP profile</b></div>
+ <div class="filters"><button class="btn sm" type="button" data-route="explorer">← Back to HCP explorer</button><span style="flex:1"></span><button class="btn primary" type="button" data-planprof="${h.id}">Plan engagement</button></div>
+ <div class="card"><div class="prof"><div class="pic" title="Fictional physician ${esc(h.name)}">${ini(h.name)}</div>
+  <div><span class="eyebrow">360° scientific profile</span><h2>${esc(h.name)}</h2><p class="muted">${esc(h.spec)} · ${esc(h.inst)}</p><div class="tags" style="margin-top:6px"><span class="prio ${h.prio}">${h.prio} priority</span><span class="tag">${esc(h.region)} · Rank #${h.id}</span></div></div>
+  <div class="pscores" style="min-width:min(100%,420px)"><div class="kpi"><span class="l">Quarterly alignment</span><span class="v num">${h.align}<span class="small muted">/100</span></span></div><div class="kpi up"><span class="l">Dynamic engagement</span><span class="v num">${h.eng.toFixed(1)}<span class="small muted">/10</span></span></div><div class="kpi"><span class="l">Scientific influence</span><span class="v num">${h.infl.toFixed(1)}</span><span class="s">${trendHtml(h.trend)}</span></div></div></div></div>
+ <div class="g2">
+  <div class="card"><h3>Scientific influence dimensions</h3><p class="sub">A multidimensional view of scientific engagement</p>${radar(dims)}</div>
+  <div class="card"><h3>Scientific collaboration network</h3><p class="sub">Research, peer relationships and clinical connections</p>${kgraph()}<div class="chips" style="margin-top:6px">${['Publications','Clinical trials','Advisory boards','Speaking & congress'].map((t,i)=>`<span class="tag">${t}</span>`).join('')}</div></div>
+ </div>
+ <div class="g21">
+  <div class="card"><h3>Publications history</h3><p class="sub">${esc(h.name)} · Recent scientific contributions · ${h.pubs} publications, ${h.trials} clinical trials</p><div class="pubs">${pubs.map(([t,d,r])=>`<div><b>${t}</b><span class="ver">Verified</span><small>${d} · ${r}</small></div>`).join('')}</div></div>
+  <div class="grid">
+   <div class="card"><h3>Scientific areas of focus</h3><p class="sub">Current research and scientific exchange interests</p><div class="tags">${['Inflammatory bowel disease','Ulcerative colitis',"Crohn's disease",'Biologic therapies','Treatment sequencing','Real-world evidence','Patient outcomes'].map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>
+   <div class="card"><h3>AI engagement outlook</h3><p class="small" style="margin:6px 0 10px">${h.trend>=15?'Strong scientific momentum and sustained research leadership suggest a timely opportunity for focused exchange on evolving IBD treatment approaches.':h.trend<0?'Engagement momentum is softening. A proactive scientific exchange is recommended to maintain the relationship.':'Steady scientific engagement. Continue the planned exchange cadence and monitor new publications.'}</p><button class="btn" type="button" data-rechgo="${h.id}">View recommended actions</button>
+    ${h.id===1?`<button class="lnk" type="button" data-livejane style="margin-top:10px;display:block">Watch her live score update in the AI engagement engine →</button>`:''}</div>
+  </div></div>`;
+};
+function radar(dims){
+ const cx=150,cy=120,R=90,n=dims.length;const pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;return [cx+R*v/10*Math.cos(a),cy+R*v/10*Math.sin(a)];};
+ let g='';[2.5,5,7.5,10].forEach(l=>{g+=`<polygon points="${dims.map((_,i)=>pt(i,l).join(',')).join(' ')}" fill="none" stroke="#efe6e7"/>`;});
+ dims.forEach(([nm],i)=>{const [x,y]=pt(i,10);const [lx,ly]=pt(i,12.4);g+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#efe6e7"/><text x="${lx}" y="${ly+4}" text-anchor="middle">${nm}</text>`;});
+ return `<svg class="chart" viewBox="0 0 300 245" width="100%" style="max-width:380px;display:block;margin:0 auto" role="img" aria-label="Influence dimensions">${g}<polygon points="${dims.map(([,v],i)=>pt(i,v).join(',')).join(' ')}" fill="#c8102e" fill-opacity=".16" stroke="#c8102e" stroke-width="2"/>${dims.map(([n,v],i)=>{const [x,y]=pt(i,v);return `<circle cx="${x}" cy="${y}" r="3.5" fill="#c8102e"><title>${n}: ${v}</title></circle>`;}).join('')}</svg>`;
+}
+
+/* =====================================================================
+   LIVE DYNAMIC SCORING DEMO (embedded in AI engagement engine)
+   ===================================================================== */
+const dec=x=>clamp(Math.ceil(x/10-1e-9),1,10);
+const fmtPts=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(1);
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtT=ms=>{const d=new Date(ms);return `${WD[d.getUTCDay()]} ${d.getUTCDate()} ${MO[d.getUTCMonth()]}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;};
+const fmtD=ms=>{const d=new Date(ms);return `${d.getUTCDate()} ${MO[d.getUTCMonth()]}`;};
+const START=Date.UTC(2026,9,1,9,0),DAY=864e5;
 const CATS=[
  {name:'Clinical Outcomes',w:5,items:'Persistence · Switching · Adherence · Hospitalizations'},
  {name:'Practice Characteristics',w:10,items:'Academic vs Community · IBD Center · Infusion Center · Volume'},
@@ -374,7 +937,7 @@ const CATS=[
  {name:'Scientific Leadership',w:15,items:'Publications · Trials · Guidelines · Congress faculty'}
 ];
 const WSUM=CATS.reduce((a,c)=>a+c.w,0);
-const CAT_COLORS=['#5a0f1c','#7e1a2c','#a3293d','#c3566a','#d98b98','#ecbec6'];
+const CAT_COLORS=['#6e0a19','#8f1226','#c8102e','#d9566a','#e68e9b','#f2c3ca'];
 const SOURCES={
  veeva:{name:'Veeva CRM',kind:'Field interactions, MSL calls',mode:'stream',base:184230},
  pubmed:{name:'PubMed',kind:'Publications & abstracts',mode:'stream',base:12844},
@@ -397,36 +960,27 @@ const TYPES={
  social:{label:'Social mention',src:'social',pts:2,group:'Social listening'}
 };
 const GROUP_COLORS={'Field interactions':'#2e7d5b','Publications & research':'#5fae88','Digital engagement':'#9db8aa','Social listening':'#7b2d6b'};
-
-/* ---------- synthetic HCPs ---------- */
 const HEROES=[
- {id:'jane',name:'Dr. Jane Smith',cred:'MD',spec:'Gastroenterologist',practice:'Academic Center',inst:'Northfield University Medical Center',region:'Northeast',tag:'IBD Specialist',scores:[50,60,30,45,50,40]},
+ {id:'jane',name:'Dr. Jane Smith',cred:'MD',spec:'IBD Specialist',practice:'Academic Center',inst:'Mount Sinai Hospital',region:'Northeast',tag:'IBD Specialist',scores:[50,60,30,45,50,40]},
  {id:'arjun',name:'Dr. Arjun Rao',cred:'MD',spec:'Gastroenterologist',practice:'Community Practice',inst:'Cedar Ridge GI Associates',region:'Midwest',tag:'General GI',scores:[35,30,15,35,25,10]},
  {id:'elena',name:'Dr. Elena Park',cred:'MD, PhD',spec:'Director, IBD Center',practice:'IBD Center',inst:'Riverbend IBD Center',region:'West',tag:'National KOL',scores:[75,90,70,80,75,85]},
  {id:'marcus',name:'Dr. Marcus Hale',cred:'DO',spec:'Gastroenterologist',practice:'Infusion Center',inst:'Summit Infusion Partners',region:'Southeast',tag:'IBD Prescriber',scores:[60,55,45,60,65,40]}
 ];
 const FIRST=['Priya','Michael','Laura','Daniel','Sofia','Robert','Anika','James','Grace','Omar','Helen','Victor','Nadia','Thomas','Rachel','Kenji','Maria','Samuel','Leah','Andre','Fatima','Peter','Clara','Hassan','Ingrid','Lucas','Mei','Diego','Rosa','Ethan','Amara','Felix','Julia','Ravi','Sarah','Tobias','Elif','Marco','Hannah','Yusuf','Nora','Isaac','Chloe','Ahmed','Vera','Paul'];
-const LAST=['Kapoor','Brennan','Okafor','Whitfield','Lindqvist','Delgado','Moreau','Tanaka','Halvorsen','Abernathy','Castellano','Nwosu','Petrov','Iyer','Callahan','Fischer','Gallagher','Mendes','Sorensen','Haddad','Ostrowski','Kimura','Valdez','Ramsey','Achebe','Lindgren','Marchetti','Ferreira','Yilmaz','Novak','Bergstrom','Quinlan','Esposito','Rahman','Duarte','Holloway','Sato','Vasquez','Engel','Mbeki','Kowalski','Thornton','Aguilar','Nakamura','Prescott','Varga'];
+const LAST=['Kapoor','Brennan','Okafor','Whitfield','Lindqvist','Delgado','Moreau','Tanaka','Halvorsen','Abernathy','Castellano','Nwosu','Petrov','Iyer','Callahan','Fischer','Gallagher','Mendes','Sorensen','Haddad','Ostrowski','Kimura','Valdez','Ramsey','Achebe','Lindgren','Marchetti','Ferreira','Yilmaz','Novak','Bergstrom','Quinlan','Esposito','Rahman','Duarte','Holloway','Sato','Vasquez','Engel','Mbeki','Kowalczyk','Thornton','Aguilar','Nakamura','Prescott','Varga'];
 const INST={'Academic Center':['Meridian University Hospital','Lakeshore Academic Medical Center','Northfield University Medical Center'],'Community Practice':['Oakhaven Gastroenterology','Pinecrest Digestive Health','Brightwater Medical Group'],'IBD Center':['Riverbend IBD Center','Westgate Center for IBD'],'Infusion Center':['Summit Infusion Partners','Clearwater Infusion Clinic']};
 const SPEC=['Gastroenterologist','Gastroenterologist','IBD Specialist','Colorectal Surgeon','Gastroenterologist'];
 const REG=['Northeast','Southeast','Midwest','West','South Central'];
 let HCPS=[];
-function buildHcps(){
- const R=mulberry32(11);
- const pick=a=>a[Math.floor(R()*a.length)];
+(function buildHcps(){
+ const R=mulberry32(11);const pick=a=>a[Math.floor(R()*a.length)];
  HCPS=HEROES.map(h=>({...h,hero:true}));
- for(let i=0;i<46;i++){
-  const practice=pick(Object.keys(INST));
-  const base=12+R()*66;
+ for(let i=0;i<46;i++){const practice=pick(Object.keys(INST));const base=12+R()*66;
   const scores=CATS.map(()=>Math.round(clamp(base+(R()-.5)*30,3,97)));
-  HCPS.push({id:'h'+i,name:`Dr. ${FIRST[i]} ${LAST[i]}`,cred:R()<.8?'MD':'DO',spec:pick(SPEC),practice,inst:pick(INST[practice]),region:pick(REG),tag:practice==='Academic Center'?'Academic GI':'Community GI',scores,hero:false});
- }
+  HCPS.push({id:'h'+i,name:`Dr. ${FIRST[i]} ${LAST[i]}`,cred:R()<.8?'MD':'DO',spec:pick(SPEC),practice,inst:pick(INST[practice]),region:pick(REG),tag:practice==='Academic Center'?'Academic GI':'Community GI',scores,hero:false});}
  HCPS.forEach((h,i)=>{h.npi='99'+String(Math.floor(mulberry32(i+101)()*1e8)).padStart(8,'0');h.align=h.scores.reduce((a,s,j)=>a+s*CATS[j].w,0)/WSUM;h.alignDec=dec(h.align);});
-}
-buildHcps();
+})();
 const byId=id=>HCPS.find(h=>h.id===id);
-
-/* ---------- evidence templates ---------- */
 const MSL_TOPICS=['Long-term remission data in moderate-to-severe UC','Gut-selective mechanism of action and safety profile','Treatment sequencing after anti-TNF failure','Subcutaneous maintenance after IV induction','Histologic remission as a treatment target','Real-world persistence in Crohn\'s disease'];
 const MSLS=['MSL A. Mehta','MSL J. Carter','MSL L. Moreno','MSL R. Iyer'];
 const PUBS=['Real-world persistence of vedolizumab in moderate-to-severe ulcerative colitis: a 3-year cohort','Early advanced-therapy positioning in Crohn\'s disease: outcomes from a multicentre registry','Histologic remission and relapse risk in ulcerative colitis','Switching patterns among advanced therapies in inflammatory bowel disease','Patient-reported outcomes after transition to subcutaneous maintenance in IBD','Infusion-centre workflows and adherence to biologic therapy'];
@@ -437,27 +991,19 @@ const EMAILS=['"Long-term safety data" in Medical Information email','"New UC gu
 const SOC_POS=['Post sharing new UC remission data; 1.2k engagements','Commentary on ECCO guideline update, widely re-shared by peers','Thread summarising treat-to-target evidence; cited by 14 GI peers','Congress live-post on histologic endpoints; strong peer engagement'];
 const SOC_NEG=['Thread questioning cost-effectiveness of biologic sequencing','Critical comment on real-world switching data','Post doubting value of histologic endpoints in practice','Reply criticising access restrictions for advanced therapies'];
 
-/* ---------- state ---------- */
-let S;
-const SCRIPT=[
- 'N',['jane','msl'],'N',['arjun','msl'],['jane','pub'],'N',['marcus','social',-1],['jane','msl'],'N',['elena','trial'],['marcus','social',-1],
- ['jane','social',1],'N',['jane','pub'],['marcus','social',-1],'N',['jane','social',1],['marcus','social',-1],['jane','msl'],'N',
- ['marcus','social',-1],['jane','social',1],'N',['marcus','social',-1],['jane','social',1]
-];
+let S=null;
+const SCRIPT=['N',['jane','msl'],'N',['arjun','msl'],['jane','pub'],'N',['marcus','social',-1],['jane','msl'],'N',['elena','trial'],['marcus','social',-1],['jane','social',1],'N',['jane','pub'],['marcus','social',-1],'N',['jane','social',1],['marcus','social',-1],['jane','msl'],'N',['marcus','social',-1],['jane','social',1],'N',['marcus','social',-1],['jane','social',1]];
 function initState(){
- S={page:S?S.page:'territory',sel:S?S.sel:'jane',events:[],clock:START,step:0,running:false,speed:1,timer:null,lastReal:null,
-    rng:mulberry32(42),seq:{},rec:Object.fromEntries(Object.entries(SOURCES).map(([k,v])=>[k,v.base])),lastSrc:{},
-    sort:{k:'delta',dir:-1},q:'',moversOnly:false,chat:S?S.chat:[],flash:{}};
+ const prev=S;
+ S={page:prev?prev.page:'territory',sel:prev?prev.sel:'jane',booted:prev?prev.booted:false,events:[],clock:START,step:0,running:false,speed:1,timer:null,lastReal:null,
+    rng:mulberry32(42),rec:Object.fromEntries(Object.entries(SOURCES).map(([k,v])=>[k,v.base])),lastSrc:{},
+    sort:{k:'delta',dir:-1},q:'',moversOnly:false,chat:[],flash:{}};
  HCPS.forEach(h=>{h.signals=[];h.uplift=0;h.dyn=h.align;h.dynDec=h.alignDec;h.hist=[{t:START,v:h.align}];});
 }
-function nextId(type){
- const r=S.rng;
- const n=k=>String(Math.floor(r()*10**k)).padStart(k,'0');
- return {msl:'CALL-'+n(5),adv:'ADV-'+n(4),pub:'PMID-demo-'+n(8),trial:'NCT-demo-'+n(8),cong:'ABS-'+n(5),email:'EML-'+n(6),social:'SOC-'+n(6)}[type];
-}
+function nextId(type){const r=S.rng;const n=k=>String(Math.floor(r()*10**k)).padStart(k,'0');
+ return {msl:'CALL-'+n(5),adv:'ADV-'+n(4),pub:'PMID-demo-'+n(8),trial:'NCT-demo-'+n(8),cong:'ABS-'+n(5),email:'EML-'+n(6),social:'SOC-'+n(6)}[type];}
 function makeEvent(hid,type,sent){
- const r=S.rng,pick=a=>a[Math.floor(r()*a.length)],T=TYPES[type];
- let detail,extra={},quality=1,match;
+ const r=S.rng,pick=a=>a[Math.floor(r()*a.length)],T=TYPES[type];let detail,extra={},match;
  if(type==='msl'){const topic=pick(MSL_TOPICS),mins=20+Math.floor(r()*30),fu=r()<.6;detail=`${pick(MSLS)} · "${topic}" · ${mins} min${fu?' · follow-up requested':''}`;extra={topic,minutes:mins,follow_up:fu,channel:r()<.7?'In person':'Virtual'};match='NPI (CRM record)';}
  else if(type==='adv'){detail='Participated in regional IBD advisory board on treatment sequencing';match='NPI (CRM record)';}
  else if(type==='pub'){const pos=r()<.5?'Senior author':'First author';detail=`${pos} · "${pick(PUBS)}" · ${pick(JOURNALS)}`;extra={author_position:pos};match='Name + affiliation (0.9'+Math.floor(4+r()*5)+')';}
@@ -465,49 +1011,29 @@ function makeEvent(hid,type,sent){
  else if(type==='cong'){detail=pick(CONGS);match='Name + affiliation (0.9'+Math.floor(3+r()*6)+')';}
  else if(type==='email'){detail='Clicked '+pick(EMAILS);match='NPI (consented email)';}
  else if(type==='social'){detail=(sent>0?pick(SOC_POS):pick(SOC_NEG))+(sent>0?' · sentiment positive':' · sentiment negative');match='Verified profile (0.9'+Math.floor(1+r()*7)+')';}
- const pts=T.pts*quality*(type==='social'?sent:1);
+ const pts=T.pts*(type==='social'?sent:1);
  S.clock+=Math.round((4+r()*10)*36e5);
  return {id:nextId(type),hid,type,src:T.src,sent:type==='social'?sent:1,pts,t:S.clock,detail,match,extra};
 }
-function noiseEvent(){
- const r=S.rng;const pool=HCPS.filter(h=>!h.hero);const h=pool[Math.floor(r()*pool.length)];
+function noiseEvent(){const r=S.rng;const pool=HCPS.filter(h=>!h.hero);const h=pool[Math.floor(r()*pool.length)];
  const x=r();let type,sent=1;
  if(x<.30)type='email';else if(x<.50)type='msl';else if(x<.63)type='cong';else if(x<.74)type='pub';else if(x<.86){type='social';sent=1;}else if(x<.95){type='social';sent=-1;}else if(x<.98)type='adv';else type='trial';
- return makeEvent(h.id,type,sent);
-}
-function nextEvent(){
- const s=SCRIPT[S.step];S.step++;
- if(s&&s!=='N')return makeEvent(s[0],s[1],s[2]||1);
- return noiseEvent();
-}
-function process(ev){
- const h=byId(ev.hid);
- const before=h.dynDec;
+ return makeEvent(h.id,type,sent);}
+function nextEvent(){const s=SCRIPT[S.step];S.step++;if(s&&s!=='N')return makeEvent(s[0],s[1],s[2]||1);return noiseEvent();}
+function processEv(ev){
+ const h=byId(ev.hid);const before=h.dynDec;
  h.signals.unshift(ev);S.events.unshift(ev);
  h.uplift+=ev.pts;h.dyn=clamp(h.align+h.uplift,0,100);h.dynDec=dec(h.dyn);
  h.hist.push({t:ev.t,v:h.dyn,ev:ev.id});
  S.rec[ev.src]++;S.lastSrc[ev.src]=ev.t;S.lastReal=Date.now();
  S.flash[h.id]={at:Date.now(),neg:ev.pts<0};
- if(h.dynDec!==before){toast(h,before,h.dynDec);}
- pulse();
- updateBar();
- refresh();
+ if(h.dynDec!==before)toast(h,before,h.dynDec);
+ pulse();updateBar();drefresh();
 }
-
-/* ---------- engine ---------- */
-function tick(){
- if(!S.running)return;
- process(nextEvent());
- S.timer=setTimeout(tick,(S.step<=SCRIPT.length?2600:2200)/S.speed);
-}
-function setRunning(on){
- S.running=on;clearTimeout(S.timer);
- if(on){S.timer=setTimeout(tick,500);}
- updateBar();
-}
-
-/* ---------- presenter bar ---------- */
+function tick(){if(!S.running)return;processEv(nextEvent());S.timer=setTimeout(tick,(S.step<=SCRIPT.length?2600:2200)/S.speed);}
+function setRunning(on){S.running=on;clearTimeout(S.timer);if(on)S.timer=setTimeout(tick,500);updateBar();}
 function updateBar(){
+ if(!$('live'))return;
  $('live').className='live'+(S.running?' on':'');
  $('liveTxt').textContent=S.running?'Live':'Paused';
  $('play').textContent=S.running?'⏸ Pause feed':'▶ Start live feed';
@@ -515,111 +1041,71 @@ function updateBar(){
  $('clock').textContent=`${fmtT(S.clock)} · day ${days} after refresh`;
  document.querySelectorAll('[data-speed]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.speed===S.speed)));
 }
-$('play').onclick=()=>setRunning(!S.running);
-$('step').onclick=()=>process(nextEvent());
-document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{S.speed=+b.dataset.speed;updateBar();});
 let resetArm=false;
-$('reset').onclick=e=>{
- const b=e.currentTarget;
- if(!resetArm){resetArm=true;b.textContent='Click again to reset';setTimeout(()=>{resetArm=false;b.textContent='Reset demo';},2500);return;}
+function dReset(b){
+ if(!resetArm){resetArm=true;b.textContent='Click again to reset';setTimeout(()=>{resetArm=false;if($('dreset'))$('dreset').textContent='Reset demo';},2500);return;}
  resetArm=false;b.textContent='Reset demo';
- setRunning(false);initState();S.chat=[];closeDrawer();updateBar();mount();
+ setRunning(false);initState();closeDrawer();updateBar();dmount();
  toastMsg('Reset to the 1 Oct quarterly refresh. No new signals yet.');
-};
-
-/* ---------- toasts, drawer ---------- */
+}
 function toast(h,from,to){
- const up=to>from;
- const el=document.createElement('div');
+ const up=to>from;const el=document.createElement('div');
  el.className='toast '+(up?'up':'dn');
  el.innerHTML=`<span>${up?'▲':'▼'}</span><span><strong>${esc(h.name)}</strong> moved from decile <b>${from}</b> → <b>${to}</b></span>`;
- el.onclick=()=>{S.sel=h.id;go('hcp');el.remove();};
- $('toasts').prepend(el);
- setTimeout(()=>el.remove(),h.hero?6000:3500);
+ el.onclick=()=>{S.sel=h.id;dgo('hcp');el.remove();};
+ $('toasts').prepend(el);setTimeout(()=>el.remove(),h.hero?6000:3500);
  const all=$('toasts').children;if(all.length>3)all[all.length-1].remove();
 }
-function toastMsg(m){const el=document.createElement('div');el.className='toast';el.textContent=m;$('toasts').prepend(el);setTimeout(()=>el.remove(),3000);}
 function openEvidence(id){
  const ev=S.events.find(e=>e.id===id);if(!ev)return;
  const h=byId(ev.hid),T=TYPES[ev.type],src=SOURCES[ev.src];
  const raw={event_id:ev.id,source_system:src.name,event_type:ev.type,hcp_npi:h.npi,occurred_at:new Date(ev.t).toISOString(),identity_match:ev.match,sentiment:ev.type==='social'?(ev.sent>0?'positive':'negative'):undefined,points:+ev.pts.toFixed(1),...ev.extra};
- $('drawer').innerHTML=`
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="eyebrow">Source evidence</span><button class="btn ghost" type="button" data-close>Close</button></div>
-  <h3 class="num">${esc(ev.id)}</h3>
-  <span class="badge src-${ev.src}"><i></i>${esc(src.name)}</span>
-  <dl class="kv">
-   <dt>HCP</dt><dd>${esc(h.name)}, ${esc(h.cred)}</dd>
-   <dt>Synthetic NPI</dt><dd class="num">${h.npi}</dd>
-   <dt>Signal</dt><dd>${esc(T.label)}</dd>
-   <dt>When</dt><dd>${fmtT(ev.t)}</dd>
-   <dt>Detail</dt><dd>${esc(ev.detail)}</dd>
-   <dt>Identity match</dt><dd>${esc(ev.match)}</dd>
-   <dt>Score impact</dt><dd class="pts ${ev.pts<0?'neg':''}">${fmtPts(ev.pts)} pts</dd>
-  </dl>
-  <span class="eyebrow">Raw record</span>
-  <pre class="raw">${esc(JSON.stringify(raw,null,2))}</pre>
+ $('drawer').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="eyebrow">Source evidence</span><button class="btn ghost" type="button" data-close>Close</button></div>
+  <h3 class="num">${esc(ev.id)}</h3><span class="badge src-${ev.src}"><i></i>${esc(src.name)}</span>
+  <dl class="kv"><dt>HCP</dt><dd>${esc(h.name)}, ${esc(h.cred)}</dd><dt>Synthetic NPI</dt><dd class="num">${h.npi}</dd><dt>Signal</dt><dd>${esc(T.label)}</dd><dt>When</dt><dd>${fmtT(ev.t)}</dd><dt>Detail</dt><dd>${esc(ev.detail)}</dd><dt>Identity match</dt><dd>${esc(ev.match)}</dd><dt>Score impact</dt><dd class="pts ${ev.pts<0?'neg':''}">${fmtPts(ev.pts)} pts</dd></dl>
+  <span class="eyebrow">Raw record</span><pre class="raw">${esc(JSON.stringify(raw,null,2))}</pre>
   <p class="small muted">Synthetic record for the demo. In production this resolves to the governed record in the S3 / Lake Formation gold layer.</p>`;
  $('drawer').classList.add('open');
 }
 function closeDrawer(){$('drawer').classList.remove('open');}
-
-/* ---------- pipeline pulse (feed + architecture pages) ---------- */
-function pulse(){
- const ids=S.page==='arch'?['L6','L5','L4','L3','L2','L1']:['P1','P2','P3','P4','P5'];
- ids.forEach((id,i)=>{setTimeout(()=>{const el=$(id);if(el){el.classList.add('hot');setTimeout(()=>el.classList.remove('hot'),420);}},i*170);});
+function pulse(){const ids=S.page==='arch'?['L6','L5','L4','L3','L2','L1']:['P1','P2','P3','P4','P5'];
+ ids.forEach((id,i)=>{setTimeout(()=>{const el=$(id);if(el){el.classList.add('hot');setTimeout(()=>el.classList.remove('hot'),420);}},i*170);});}
+const DPAGES=[['territory','Territory'],['feed','Live signal feed'],['hcp','HCP 360'],['ask','Ask AI'],['sources','Data sources'],['arch','Architecture']];
+function dgo(p){
+ S.page=p;closeDrawer();
+ if(ST.route!=='engine'||ST.etab!=='live'){ST.etab='live';nav('engine-live');return;}
+ dmount();const d=$('dnav');if(d)d.scrollIntoView({block:'nearest'});
 }
-
-/* ---------- navigation ---------- */
-const PAGES=[['territory','Territory','grid'],['feed','Live Signal Feed','pulse'],['hcp','HCP 360','user'],['ask','Ask AI','chat'],['sources','Data Sources','db'],['arch','Architecture','layers']];
-function renderNav(){
- $('nav').innerHTML=PAGES.map(([k,l,i])=>`<button type="button" data-go="${k}"${S.page===k?' aria-current="page"':''}>${ic(i)}<span>${l}</span></button>`).join('');
+function dmount(){
+ if(!$('dpage'))return;
+ $('dnav').innerHTML=DPAGES.map(([k,l])=>`<button type="button" data-go="${k}"${S.page===k?' aria-current="page"':''}>${l}</button>`).join('');
+ const f=VIEWS[S.page];$('dpage').innerHTML=f.shell();f.update&&f.update();f.after&&f.after();
 }
-function go(p){S.page=p;closeDrawer();mount();window.scrollTo({top:0});}
-function mount(){renderNav();const f=VIEWS[S.page];$('page').innerHTML=f.shell();f.update&&f.update();f.after&&f.after();}
-function refresh(){const f=VIEWS[S.page];if(f.update)f.update();}
-
-/* ---------- shared bits ---------- */
+function drefresh(){if(!$('dpage'))return;const f=VIEWS[S.page];if(f.update)f.update();}
 const srcBadge=k=>`<span class="badge src-${k}"><i></i>${esc(SOURCES[k].name)}</span>`;
 const deltaHtml=h=>{const d=h.dynDec-h.alignDec;return d>0?`<span class="delta up">▲ ${d}</span>`:d<0?`<span class="delta dn">▼ ${-d}</span>`:`<span class="delta eq">—</span>`;};
 const ago=t=>{if(!t)return '—';const s=Math.max(0,Math.round((Date.now()-t)/1000));return s<60?`${s}s ago`:`${Math.floor(s/60)}m ago`;};
-function topDriver(h){
- if(!h.signals.length)return '—';
- const g={};h.signals.forEach(e=>{const k=TYPES[e.type].group;g[k]=(g[k]||0)+e.pts;});
- const [k,v]=Object.entries(g).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
- return `${k} <span class="pts ${v<0?'neg':''}">${fmtPts(v)}</span>`;
-}
-function evRow(e,showHcp=true){
- const h=byId(e.hid),T=TYPES[e.type];
- return `<div class="ev"><time>${fmtT(e.t).replace(', ','<br>')}</time>
-  <div style="min-width:0"><div class="t">${showHcp?`<a data-hcp="${h.id}">${esc(h.name)}</a> · `:''}${esc(T.label)}${e.type==='social'?(e.sent>0?' (positive)':' (negative)'):''}</div><div class="d">${esc(e.detail)}</div></div>
-  <div class="r"><span class="pts ${e.pts<0?'neg':''}">${fmtPts(e.pts)}</span>${srcBadge(e.src)}<button type="button" class="evid" data-cite="${e.id}">${e.id}</button></div></div>`;
-}
-
-/* ---------- views ---------- */
+function topDriver(h){if(!h.signals.length)return '—';const g={};h.signals.forEach(e=>{const k=TYPES[e.type].group;g[k]=(g[k]||0)+e.pts;});
+ const [k,v]=Object.entries(g).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];return `${k} <span class="pts ${v<0?'neg':''}">${fmtPts(v)}</span>`;}
+function evRow(e,showHcp=true){const h=byId(e.hid),T=TYPES[e.type];
+ return `<div class="ev"><time>${fmtT(e.t).replace(', ','<br>')}</time><div style="min-width:0"><div class="t">${showHcp?`<a data-hcp="${h.id}">${esc(h.name)}</a> · `:''}${esc(T.label)}${e.type==='social'?(e.sent>0?' (positive)':' (negative)'):''}</div><div class="d">${esc(e.detail)}</div></div>
+  <div class="r"><span class="pts ${e.pts<0?'neg':''}">${fmtPts(e.pts)}</span>${srcBadge(e.src)}<button type="button" class="evid" data-cite="${e.id}">${e.id}</button></div></div>`;}
 const VIEWS={};
-
 VIEWS.territory={
- shell:()=>`
-  <div class="phead"><div><span class="eyebrow">IBD · 50 HCPs in pilot cohort</span><h1>Territory overview</h1>
-   <p>The quarterly alignment decile (1 Oct refresh) sits next to the dynamic decile, which updates with every new signal.</p></div></div>
+ shell:()=>`<div class="dhead"><div><span class="eyebrow">IBD · 50 HCPs in pilot cohort</span><h2>Territory overview</h2><p>The quarterly alignment decile (1 Oct refresh) sits next to the dynamic decile, which updates with every new signal.</p></div></div>
   <div class="kpis" id="kpis"></div>
-  <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)">
-   <div class="card"><h3>HCPs per decile <small>alignment vs dynamic</small></h3><div id="dchart"></div></div>
-   <div class="card"><h3>Biggest movers since refresh <small>click to open</small></h3><div id="movers"></div></div>
-  </div>
-  <div class="tools"><input class="search" id="q" type="search" placeholder="Search HCP, institution, region" aria-label="Search HCPs" value="${esc(S.q)}">
-   <label class="chk"><input type="checkbox" id="mov"${S.moversOnly?' checked':''}>Movers only</label><span class="sp" style="flex:1"></span><span class="small muted" id="cnt"></span></div>
-  <div class="tablewrap"><table><thead><tr>
-   ${[['name','HCP'],['region','Region'],['align','Alignment'],['dyn','Dynamic'],['delta','Change'],['score','Score'],['sig','Signals'],['drv','Top driver'],['last','Last signal']].map(([k,l])=>`<th><button type="button" data-sort="${k}">${l}${S.sort.k===k?(S.sort.dir<0?' ↓':' ↑'):''}</button></th>`).join('')}
-  </tr></thead><tbody id="tb"></tbody></table></div>`,
+  <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)" id="tgrid">
+   <div class="card"><h3>HCPs per decile <small class="muted small" style="font-family:var(--body);font-weight:500">alignment vs dynamic</small></h3><div id="dchart"></div></div>
+   <div class="card"><h3>Biggest movers since refresh <small class="muted small" style="font-family:var(--body);font-weight:500">click to open</small></h3><div id="movers"></div></div></div>
+  <div class="tools"><input class="search" id="q" type="search" placeholder="Search HCP, institution, region" aria-label="Search HCPs" value="${esc(S.q)}"><label class="chk"><input type="checkbox" id="mov"${S.moversOnly?' checked':''}>Movers only</label><span style="flex:1"></span><span class="small muted" id="cnt"></span></div>
+  <div class="tablewrap"><table class="dt"><thead><tr>${[['name','HCP'],['region','Region'],['align','Alignment'],['dyn','Dynamic'],['delta','Change'],['score','Score'],['sig','Signals'],['drv','Top driver'],['last','Last signal']].map(([k,l])=>`<th><button type="button" data-sort="${k}">${l}${S.sort.k===k?(S.sort.dir<0?' ↓':' ↑'):''}</button></th>`).join('')}</tr></thead><tbody id="tb"></tbody></table></div>`,
  update(){
   const up=HCPS.filter(h=>h.dynDec>h.alignDec).length,dn=HCPS.filter(h=>h.dynDec<h.alignDec).length;
-  $('kpis').innerHTML=`
-   <div class="kpi"><span class="l">HCPs in scope</span><span class="v num">${HCPS.length}</span><span class="s">IBD pilot cohort</span></div>
+  $('kpis').innerHTML=`<div class="kpi"><span class="l">HCPs in scope</span><span class="v num">${HCPS.length}</span><span class="s">IBD pilot cohort</span></div>
    <div class="kpi up"><span class="l">Moved up</span><span class="v num">${up}</span><span class="s">dynamic &gt; alignment</span></div>
    <div class="kpi down"><span class="l">Moved down</span><span class="v num">${dn}</span><span class="s">dynamic &lt; alignment</span></div>
    <div class="kpi"><span class="l">Signals since refresh</span><span class="v num">${S.events.length}</span><span class="s">${new Set(S.events.map(e=>e.src)).size} sources contributing</span></div>
-   <div class="kpi"><span class="l">Last signal</span><span class="v num ago" data-ago>${ago(S.lastReal)}</span><span class="s">quarterly model: 1 Oct</span></div>`;
+   <div class="kpi"><span class="l">Last signal</span><span class="v num" data-ago>${ago(S.lastReal)}</span><span class="s">quarterly model: 1 Oct</span></div>`;
   $('dchart').innerHTML=decileChart();
   const mv=[...HCPS].filter(h=>h.signals.length).sort((a,b)=>Math.abs(b.dyn-b.align)-Math.abs(a.dyn-a.align)).slice(0,5);
   $('movers').innerHTML=mv.length?`<div class="health">${mv.map(h=>`<div style="cursor:pointer" data-hcp="${h.id}"><span><b>${esc(h.name)}</b><br><span class="small muted">${esc(h.practice)} · ${h.signals.length} signals</span></span><span style="display:flex;gap:8px;align-items:center"><span class="dpill a">${h.alignDec}</span>→<span class="dpill d${h.dynDec<h.alignDec?' dn':''}">${h.dynDec}</span><span class="pts ${h.dyn<h.align?'neg':''}">${fmtPts(h.dyn-h.align)}</span></span></div>`).join('')}</div>`
@@ -633,169 +1119,115 @@ VIEWS.territory={
   rows.sort((a,b)=>{const x=key(a),y=key(b);return (x>y?1:x<y?-1:0)*S.sort.dir||b.align-a.align;});
   const now=Date.now();
   $('tb').innerHTML=rows.map(h=>{const f=S.flash[h.id];const fl=f&&now-f.at<1200;
-   return `<tr data-hcp="${h.id}" class="${fl?'flash'+(f.neg?' neg':''):''}">
-   <td><div class="nm">${esc(h.name)}</div><div class="sub">${esc(h.spec)} · ${esc(h.practice)}</div></td>
+   return `<tr data-hcp="${h.id}" class="${fl?'flash'+(f.neg?' neg':''):''}"><td><div class="nm">${esc(h.name)}</div><div class="sub">${esc(h.spec)} · ${esc(h.practice)}</div></td>
    <td>${esc(h.region)}</td><td><span class="dpill a">${h.alignDec}</span></td><td><span class="dpill d${h.dynDec<h.alignDec?' dn':''}">${h.dynDec}</span></td>
-   <td>${deltaHtml(h)}</td><td class="num small">${h.align.toFixed(1)} → <b>${h.dyn.toFixed(1)}</b></td><td class="num">${h.signals.length}</td>
-   <td class="small">${topDriver(h)}</td><td class="small muted">${h.signals[0]?fmtT(h.signals[0].t):'—'}</td></tr>`;}).join('')||`<tr><td colspan="9" class="empty">No HCPs match this search.</td></tr>`;
+   <td>${deltaHtml(h)}</td><td class="num small">${h.align.toFixed(1)} → <b>${h.dyn.toFixed(1)}</b></td><td class="num">${h.signals.length}</td><td class="small">${topDriver(h)}</td><td class="small muted">${h.signals[0]?fmtT(h.signals[0].t):'—'}</td></tr>`;}).join('')||`<tr><td colspan="9" class="empty">No HCPs match this search.</td></tr>`;
   $('cnt').textContent=`${rows.length} of ${HCPS.length} HCPs`;
   setTimeout(()=>document.querySelectorAll('tr.flash').forEach(r=>r.classList.remove('flash','neg')),900);
  },
- after(){
-  $('q').oninput=e=>{S.q=e.target.value;VIEWS.territory.table();};
-  $('mov').onchange=e=>{S.moversOnly=e.target.checked;VIEWS.territory.table();};
- }
+ after(){$('q').oninput=e=>{S.q=e.target.value;VIEWS.territory.table();};$('mov').onchange=e=>{S.moversOnly=e.target.checked;VIEWS.territory.table();};}
 };
 function decileChart(){
  const a=Array(10).fill(0),d=Array(10).fill(0);HCPS.forEach(h=>{a[h.alignDec-1]++;d[h.dynDec-1]++;});
  const max=Math.max(4,...a,...d),top=Math.ceil(max/4)*4;
  const W=560,H=210,L=30,B=30,T=14,cw=(W-L-10)/10,bw=cw*.34,y=v=>T+(H-T-B)*(1-v/top);
- let g='';for(let t=0;t<=top;t+=top/4){g+=`<line x1="${L}" x2="${W-10}" y1="${y(t)}" y2="${y(t)}" stroke="#eee0e2"/><text x="${L-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`;}
+ let g='';for(let t=0;t<=top;t+=top/4){g+=`<line x1="${L}" x2="${W-10}" y1="${y(t)}" y2="${y(t)}" stroke="#efe6e7"/><text x="${L-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`;}
  let bars='';for(let i=0;i<10;i++){const x=L+i*cw+cw/2;
-  bars+=`<rect x="${x-bw-1}" y="${y(a[i])}" width="${bw}" height="${y(0)-y(a[i])}" rx="2" fill="#e0b3bb"><title>Decile ${i+1} alignment: ${a[i]}</title></rect>
-  <rect x="${x+1}" y="${y(d[i])}" width="${bw}" height="${y(0)-y(d[i])}" rx="2" fill="#2e7d5b" style="transition:all .4s"><title>Decile ${i+1} dynamic: ${d[i]}</title></rect>
-  <text x="${x}" y="${H-12}" text-anchor="middle">${i+1}</text>`;}
- return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="HCP count per decile">${g}${bars}<text x="${W/2}" y="${H}" text-anchor="middle">Decile</text></svg>
-  <div class="legend"><span><i style="background:#e0b3bb"></i>Alignment (quarterly)</span><span><i style="background:#2e7d5b"></i>Dynamic (real-time)</span></div>`;
+  bars+=`<rect x="${x-bw-1}" y="${y(a[i])}" width="${bw}" height="${y(0)-y(a[i])}" rx="2" fill="#f0bcc4"><title>Decile ${i+1} alignment: ${a[i]}</title></rect><rect x="${x+1}" y="${y(d[i])}" width="${bw}" height="${y(0)-y(d[i])}" rx="2" fill="#2e7d5b"><title>Decile ${i+1} dynamic: ${d[i]}</title></rect><text x="${x}" y="${H-12}" text-anchor="middle">${i+1}</text>`;}
+ return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="HCP count per decile">${g}${bars}<text x="${W/2}" y="${H}" text-anchor="middle">Decile</text></svg><div class="legend"><span><i style="background:#f0bcc4"></i>Alignment (quarterly)</span><span><i style="background:#2e7d5b"></i>Dynamic (real-time)</span></div>`;
 }
-
 VIEWS.feed={
- shell:()=>`
-  <div class="phead"><div><span class="eyebrow">Streaming ingestion</span><h1>Live signal feed</h1>
-   <p>Each event is matched to an HCP, stored, and rescored in the deterministic scoring service. No LLM is involved in the score.</p></div></div>
-  <div class="feedgrid">
-   <div class="card"><h3>Incoming signals <small id="fcount"></small></h3><div class="feed" id="feed"></div></div>
-   <div class="grid">
-    <div class="card"><h3>Processing pipeline <small>lights up per event</small></h3><div class="pipe">
+ shell:()=>`<div class="dhead"><div><span class="eyebrow">Streaming ingestion</span><h2>Live signal feed</h2><p>Each event is matched to an HCP, stored, and rescored in the deterministic scoring service. No LLM is involved in the score.</p></div></div>
+  <div class="feedgrid"><div class="card"><h3>Incoming signals <small class="small muted" style="font-family:var(--body);font-weight:500" id="fcount"></small></h3><div class="feed" id="feed"></div></div>
+   <div class="grid"><div class="card"><h3>Processing pipeline <small class="small muted" style="font-family:var(--body);font-weight:500">lights up per event</small></h3><div class="pipe" style="margin-top:10px">
      <div class="stage" id="P1"><span class="n">1</span><span><b>Ingest event</b><small>Kinesis / EventBridge</small></span></div>
      <div class="stage" id="P2"><span class="n">2</span><span><b>Resolve identity to NPI</b><small>OneKey master · name + affiliation matching</small></span></div>
      <div class="stage" id="P3"><span class="n">3</span><span><b>Update features</b><small>SageMaker Feature Store (online)</small></span></div>
      <div class="stage" id="P4"><span class="n">4</span><span><b>Deterministic rescoring</b><small>Lambda / Step Functions · weights + uplift</small></span></div>
-     <div class="stage" id="P5"><span class="n">5</span><span><b>Decile change and alert</b><small>Dashboard · CRM write-back · rep alert</small></span></div>
-    </div></div>
-    <div class="card"><h3>Source health</h3><div class="health" id="health"></div></div>
-   </div>
-  </div>`,
+     <div class="stage" id="P5"><span class="n">5</span><span><b>Decile change and alert</b><small>Dashboard · CRM write-back · rep alert</small></span></div></div></div>
+    <div class="card"><h3>Source health</h3><div class="health" id="health" style="margin-top:6px"></div></div></div></div>`,
  update(){
   $('feed').innerHTML=S.events.length?S.events.slice(0,40).map(e=>evRow(e)).join(''):`<div class="empty"><b>Waiting for signals</b>Press “Start live feed” or “Next signal” in the bar above.</div>`;
   $('fcount').textContent=`${S.events.length} since 1 Oct refresh`;
   $('health').innerHTML=['veeva','pubmed','ctgov','congress','omni','social'].map(k=>`<div><span>${srcBadge(k)}</span><span class="num small">${fmtN(S.rec[k])}</span><span class="small muted" style="min-width:86px;text-align:right">${S.lastSrc[k]?fmtD(S.lastSrc[k]):'no events yet'}</span></div>`).join('');
  }
 };
-
 VIEWS.hcp={
- shell:()=>`
-  <div class="phead"><div><span class="eyebrow">AI-powered IBD Scientific Engagement Score</span><h1>HCP 360</h1></div>
+ shell:()=>`<div class="dhead"><div><span class="eyebrow">AI-powered IBD Scientific Engagement Score</span><h2>HCP 360</h2></div>
    <div class="picker">${HEROES.map(h=>`<button type="button" class="chip" data-pick="${h.id}" aria-pressed="${S.sel===h.id}">${esc(h.name.replace('Dr. ',''))}</button>`).join('')}
    <select class="sel" id="hsel" aria-label="Choose any HCP">${HCPS.map(h=>`<option value="${h.id}"${S.sel===h.id?' selected':''}>${esc(h.name)}</option>`).join('')}</select></div></div>
   <div class="card hero" id="hero"></div>
-  <div class="cols3">
-   <div class="card"><h3>Quarterly alignment model <small>static · 1 Oct</small></h3><div id="cats"></div>
-    <p class="note">Strawman weights from the kickoff deck. They total ${WSUM}%, normalised here; the remaining ${100-WSUM}% is open for definition in discovery.</p></div>
-   <div class="card"><h3>Why this score <small>exact contributions</small></h3><div id="why"></div></div>
-   <div class="card"><h3>Dynamic real-time inputs <small>since refresh</small></h3><div id="sigs"></div></div>
-  </div>`,
+  <div class="cols3"><div class="card"><h3>Quarterly alignment model <small class="small muted" style="font-family:var(--body);font-weight:500">static · 1 Oct</small></h3><div id="cats"></div>
+    <p class="note">Six scored categories (${WSUM}% of weight), normalised. “Other Strategic Factors” (20%) is defined during discovery.</p></div>
+   <div class="card"><h3>Why this score <small class="small muted" style="font-family:var(--body);font-weight:500">exact contributions</small></h3><div id="why"></div></div>
+   <div class="card"><h3>Dynamic real-time inputs <small class="small muted" style="font-family:var(--body);font-weight:500">since refresh</small></h3><div id="sigs"></div></div></div>`,
  update(){
-  const h=byId(S.sel);
-  const d=h.dynDec-h.alignDec,cls=d>0?'':d<0?' down':' flat';
-  const ini=h.name.replace('Dr. ','').split(' ').map(w=>w[0]).join('');
-  const segs=(n)=>Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
-  $('hero').innerHTML=`
-   <div class="who"><div class="av">${ini}</div><div><h2>${esc(h.name)}, ${esc(h.cred)}</h2><p>${esc(h.spec)} · ${esc(h.practice)}</p><p>${esc(h.inst)} · ${esc(h.region)}</p><p><span class="badge src-pubmed">${esc(h.tag)}</span> <span class="num small muted">NPI ${h.npi}</span></p></div></div>
+  const h=byId(S.sel);const d=h.dynDec-h.alignDec,cls=d>0?'':d<0?' down':' flat';
+  const segs=n=>Array.from({length:10},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
+  $('hero').innerHTML=`<div class="who"><div class="av">${ini(h.name)}</div><div><h2>${esc(h.name)}, ${esc(h.cred)}</h2><p>${esc(h.spec)} · ${esc(h.practice)}</p><p>${esc(h.inst)} · ${esc(h.region)}</p><p><span class="badge src-pubmed">${esc(h.tag)}</span> <span class="num small muted">NPI ${h.npi}</span></p></div></div>
    <div class="big a"><span class="k">Alignment_Model_Decile</span><span class="n num">${h.alignDec}</span><div class="segs">${segs(h.alignDec)}</div><span class="sc">Score <b class="num">${h.align.toFixed(1)}</b> · unchanged until next refresh</span></div>
    <div class="arrow">${ic('right')}</div>
    <div class="big d${d<0?' dn':''}"><span class="k">Dynamic_Model_Output</span><span class="n num">${h.dynDec}</span><div class="segs">${segs(h.dynDec)}</div><span class="sc">Score <b class="num">${h.dyn.toFixed(1)}</b> · updated ${h.signals[0]?fmtD(h.signals[0].t):'—'}</span></div>
-   <div class="verdict${cls}"><b>${d>0?`Increased from ${h.alignDec} → ${h.dynDec}`:d<0?`Decreased from ${h.alignDec} → ${h.dynDec}`:`Holding at decile ${h.alignDec}`}</b>
-    <span>${d>0?'High recent scientific engagement and influence.':d<0?'Negative recent peer sentiment is pulling engagement down.':h.signals.length?'New signals have not yet changed the decile.':'No new signals since the quarterly refresh.'}</span></div>`;
-  $('cats').innerHTML=CATS.map((c,i)=>`<div class="catrow"><b>${esc(c.name)}</b><span class="w">${c.w}%</span>
-   <div class="bars"><span>Score</span><div class="meter"><span style="width:${h.scores[i]}%"></span></div><span class="num" style="min-width:24px;text-align:right;color:var(--fg)">${h.scores[i]}</span><span class="num" style="min-width:58px;text-align:right;color:var(--accent)">+${(h.scores[i]*c.w/WSUM).toFixed(1)} pts</span></div>
-   <div class="it">${esc(c.items)}</div></div>`).join('');
+   <div class="verdict${cls}"><b>${d>0?`Increased from ${h.alignDec} → ${h.dynDec}`:d<0?`Decreased from ${h.alignDec} → ${h.dynDec}`:`Holding at decile ${h.alignDec}`}</b><span>${d>0?'High recent scientific engagement and influence.':d<0?'Negative recent peer sentiment is pulling engagement down.':h.signals.length?'New signals have not yet changed the decile.':'No new signals since the quarterly refresh.'}</span></div>`;
+  $('cats').innerHTML=CATS.map((c,i)=>`<div class="catrow"><b>${esc(c.name)}</b><span class="w">${c.w}%</span><div class="bars"><span>Score</span><div class="meter"><span style="width:${h.scores[i]}%"></span></div><span class="num" style="min-width:24px;text-align:right;color:var(--fg)">${h.scores[i]}</span><span class="num" style="min-width:58px;text-align:right;color:var(--accent)">+${(h.scores[i]*c.w/WSUM).toFixed(1)} pts</span></div><div class="it">${esc(c.items)}</div></div>`).join('');
   const g={};h.signals.forEach(e=>{const k=TYPES[e.type].group;g[k]=(g[k]||0)+e.pts;});
   const parts=CATS.map((c,i)=>({n:c.name,v:h.scores[i]*c.w/WSUM,c:CAT_COLORS[i]})).concat(Object.entries(g).map(([k,v])=>({n:k,v,c:GROUP_COLORS[k]})));
-  let room=100;
-  const stack=parts.map(p=>{const w=Math.max(0,Math.min(room,p.v));room-=w;return `<span title="${esc(p.n)}: ${p.v.toFixed(1)}" style="width:${w}%;background:${p.c}"></span>`;}).join('');
+  let room=100;const stack=parts.map(p=>{const w=Math.max(0,Math.min(room,p.v));room-=w;return `<span title="${esc(p.n)}: ${p.v.toFixed(1)}" style="width:${w}%;background:${p.c}"></span>`;}).join('');
   const neg=Object.values(g).filter(v=>v<0).reduce((a,b)=>a+b,0);
-  $('why').innerHTML=`<div class="stack">${stack}</div>
-   <div class="legend">${parts.filter(p=>Math.abs(p.v)>.05).map(p=>`<span><i style="background:${p.c}"></i>${esc(p.n)} ${p.v<0?'−':''}${Math.abs(p.v).toFixed(1)}</span>`).join('')}</div>
+  $('why').innerHTML=`<div class="stack">${stack}</div><div class="legend">${parts.filter(p=>Math.abs(p.v)>.05).map(p=>`<span><i style="background:${p.c}"></i>${esc(p.n)} ${p.v<0?'−':''}${Math.abs(p.v).toFixed(1)}</span>`).join('')}</div>
    <div class="eq"><span>${h.align.toFixed(1)}</span><span class="${h.uplift>=0?'g':'b'}">${fmtPts(h.uplift)}</span><span>=</span><span>${h.dyn.toFixed(1)}</span><span class="small muted" style="font-family:var(--body);font-weight:500">alignment + real-time uplift = dynamic</span></div>
-   ${neg<0?`<p class="small" style="color:var(--bad)">Negative signals: ${fmtPts(neg)} pts</p>`:''}
-   <div style="margin-top:12px">${timeline(h)}</div>
+   ${neg<0?`<p class="small" style="color:var(--bad)">Negative signals: ${fmtPts(neg)} pts</p>`:''}<div style="margin-top:12px">${timeline(h)}</div>
    <div class="nba" style="margin-top:12px"><b>Suggested next best action</b>${nba(h)}</div>`;
   const cnt={};h.signals.forEach(e=>{const k=TYPES[e.type].label+(e.type==='social'?(e.sent>0?' · positive':' · negative'):'');cnt[k]=cnt[k]||{n:0,p:0};cnt[k].n++;cnt[k].p+=e.pts;});
-  $('sigs').innerHTML=h.signals.length?`<div class="sigsum">${Object.entries(cnt).map(([k,v])=>`<div><span><b class="num">${v.n}×</b> ${esc(k)}</span><span class="pts ${v.p<0?'neg':''}">${fmtPts(v.p)}</span></div>`).join('')}</div>
-   <div class="evlist">${h.signals.map(e=>evRow(e,false)).join('')}</div>`
+  $('sigs').innerHTML=h.signals.length?`<div class="sigsum">${Object.entries(cnt).map(([k,v])=>`<div><span><b class="num">${v.n}×</b> ${esc(k)}</span><span class="pts ${v.p<0?'neg':''}">${fmtPts(v.p)}</span></div>`).join('')}</div><div class="evlist">${h.signals.map(e=>evRow(e,false)).join('')}</div>`
    :`<div class="empty"><b>No new signals yet</b>Start the live feed. ${h.hero?'Scripted signals for this HCP arrive in the first minute.':'Random signals may reach this HCP.'}</div>`;
  },
- after(){$('hsel').onchange=e=>{S.sel=e.target.value;mount();};}
+ after(){$('hsel').onchange=e=>{S.sel=e.target.value;dmount();};}
 };
 function timeline(h){
- const W=520,H=170,L=30,R=26,T=12,B=26;
- const t1=Math.max(S.clock,START+7*DAY);
+ const W=520,H=170,L=30,R=26,T=12,B=26;const t1=Math.max(S.clock,START+7*DAY);
  const x=t=>L+(W-L-R)*(t-START)/(t1-START),y=v=>T+(H-T-B)*(1-v/100);
- let g='';[0,25,50,75,100].forEach(v=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#eee0e2"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;});
+ let g='';[0,25,50,75,100].forEach(v=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#efe6e7"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;});
  const days=Math.ceil((t1-START)/DAY);const step=days>20?7:days>8?3:1;
  for(let dd=0;dd<=days;dd+=step){g+=`<text x="${x(START+dd*DAY)}" y="${H-6}" text-anchor="middle">${fmtD(START+dd*DAY)}</text>`;}
  let p=`M${x(START)} ${y(h.hist[0].v)}`;h.hist.slice(1).forEach(pt=>{p+=` H${x(pt.t)} V${y(pt.v)}`;});p+=` H${x(S.clock)}`;
- const dots=h.hist.slice(1).map(pt=>`<circle cx="${x(pt.t)}" cy="${y(pt.v)}" r="3" fill="#2e7d5b"/>`).join('');
- const last=h.hist[h.hist.length-1];
- return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Score over time">${g}
-  <line x1="${x(START)}" x2="${x(S.clock)}" y1="${y(h.align)}" y2="${y(h.align)}" stroke="#a3293d" stroke-dasharray="5 4" stroke-width="1.5"/>
-  <path d="${p}" fill="none" stroke="#2e7d5b" stroke-width="2.2"/>${dots}
-  <circle cx="${x(S.clock)}" cy="${y(last.v)}" r="4.5" fill="#2e7d5b" stroke="#fff" stroke-width="2"/></svg>
-  <div class="legend"><span><i style="background:#a3293d"></i>Alignment score (frozen)</span><span><i style="background:#2e7d5b"></i>Dynamic score</span></div>`;
+ const dots=h.hist.slice(1).map(pt=>`<circle cx="${x(pt.t)}" cy="${y(pt.v)}" r="3" fill="#2e7d5b"/>`).join('');const last=h.hist[h.hist.length-1];
+ return `<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Score over time">${g}<line x1="${x(START)}" x2="${x(S.clock)}" y1="${y(h.align)}" y2="${y(h.align)}" stroke="#c8102e" stroke-dasharray="5 4" stroke-width="1.5"/><path d="${p}" fill="none" stroke="#2e7d5b" stroke-width="2.2"/>${dots}<circle cx="${x(S.clock)}" cy="${y(last.v)}" r="4.5" fill="#2e7d5b" stroke="#fff" stroke-width="2"/></svg>
+  <div class="legend"><span><i style="background:#c8102e"></i>Alignment score (frozen)</span><span><i style="background:#2e7d5b"></i>Dynamic score</span></div>`;
 }
-function nba(h){
- const d=h.dynDec-h.alignDec;
+function nba(h){const d=h.dynDec-h.alignDec;
  if(d>=3)return 'Prioritise for an MSL scientific follow-up within 2 weeks and consider for the next IBD advisory board. Flag to the brand team as an emerging influencer.';
  if(d>0)return 'Schedule an MSL follow-up on the topics raised in recent discussions. Monitor for further publication activity.';
  if(d<0)return 'Review recent peer sentiment with the MSL team before the next engagement. The quarterly alignment decile is kept until the next refresh.';
- return 'No change in priority. Continue the planned engagement cadence.';
-}
-
+ return 'No change in priority. Continue the planned engagement cadence.';}
 VIEWS.ask={
- shell:()=>`
-  <div class="phead"><div><span class="eyebrow">Investigator agent · scripted for this demo</span><h1>Ask AI</h1>
-   <p>Every answer is built from the live score data and cites the source events. In production this is the Bedrock Investigator Agent with guardrails.</p></div></div>
-  <div class="askgrid">
-   <div class="card" style="display:flex;flex-direction:column"><div class="chat" id="chat"></div>
-    <form class="askform" id="askf"><input id="askq" autocomplete="off" placeholder="Ask about an HCP, a decile change, or the data sources" aria-label="Question"><button class="btn primary" type="submit">Ask</button></form></div>
-   <div class="card"><h3>Try asking</h3><div class="sugg">
+ shell:()=>`<div class="dhead"><div><span class="eyebrow">Investigator agent · scripted for this demo</span><h2>Ask AI</h2><p>Every answer is built from the live score data and cites the source events. In production this is the Bedrock Investigator Agent with guardrails.</p></div></div>
+  <div class="askgrid"><div class="card" style="display:flex;flex-direction:column"><div class="chat" id="chat"></div>
+   <form class="askform" id="askf"><input id="askq" autocomplete="off" placeholder="Ask about an HCP, a decile change, or the data sources" aria-label="Question"><button class="btn primary" type="submit">Ask</button></form></div>
+   <div class="card"><h3>Try asking</h3><div class="sugg" style="margin-top:10px">
     <button type="button" data-ask="Why did Dr. Jane Smith move up?">Why did Dr. Jane Smith move up?</button>
     <button type="button" data-ask="Which HCPs moved up the most since the refresh?">Which HCPs moved up the most since the refresh?</button>
     <button type="button" data-ask="Why is Dr. Marcus Hale going down?">Why is Dr. Marcus Hale going down?</button>
     <button type="button" data-ask="Who are the top-priority HCPs right now?">Who are the top-priority HCPs right now?</button>
-    <button type="button" data-ask="What data sources feed this score?">What data sources feed this score?</button>
-   </div><p class="note">Tip: start the live feed first, so the answers have signals to cite.</p></div>
-  </div>`,
+    <button type="button" data-ask="What data sources feed this score?">What data sources feed this score?</button></div><p class="note">Tip: start the live feed first, so the answers have signals to cite.</p></div></div>`,
  update:null,
- after(){
-  renderChat();
-  $('askf').onsubmit=e=>{e.preventDefault();const q=$('askq').value.trim();if(q){ask(q);$('askq').value='';}};
- }
+ after(){renderChat();$('askf').onsubmit=e=>{e.preventDefault();const q=$('askq').value.trim();if(q){ask(q);$('askq').value='';}};}
 };
-function renderChat(){
- const c=$('chat');if(!c)return;
- c.innerHTML=S.chat.length?S.chat.map(m=>m.role==='u'?`<div class="msg u">${esc(m.text)}</div>`
-  :`<div class="msg a"><span class="who2">Investigator agent</span>${m.pending?'<span class="typing"><i></i><i></i><i></i> Analysing signals and evidence…</span>':m.html}</div>`).join('')
+function renderChat(){const c=$('chat');if(!c)return;
+ c.innerHTML=S.chat.length?S.chat.map(m=>m.role==='u'?`<div class="msg u">${esc(m.text)}</div>`:`<div class="msg a"><span class="who2">Investigator agent</span>${m.pending?'<span class="typing"><i></i><i></i><i></i> Analysing signals and evidence…</span>':m.html}</div>`).join('')
   :`<div class="empty"><b>Ask why any HCP's score changed</b>Pick a suggested question or type your own.</div>`;
- const last=c.lastElementChild;if(last&&S.chat.length)last.scrollIntoView({block:'nearest',behavior:'smooth'});
-}
-function ask(q){
- S.chat.push({role:'u',text:q});const m={role:'a',pending:true};S.chat.push(m);renderChat();
- setTimeout(()=>{m.pending=false;m.html=answer(q);renderChat();},1300);
-}
+ const last=c.lastElementChild;if(last&&S.chat.length)last.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function ask(q){S.chat.push({role:'u',text:q});const m={role:'a',pending:true};S.chat.push(m);renderChat();setTimeout(()=>{m.pending=false;m.html=answer(q);renderChat();},1300);}
 const cite=e=>`<button type="button" class="cite" data-cite="${e.id}">${e.id}</button>`;
 function trace(steps){return `<details class="trace"><summary>Agent trace · ${steps.length} steps · guardrails passed</summary><ol>${steps.map(s=>`<li>${s}</li>`).join('')}</ol></details>`;}
 function explain(h){
- const head=`<p><b>${esc(h.name)}</b> (${esc(h.practice)}, ${esc(h.region)}): alignment decile <b>${h.alignDec}</b> (score ${h.align.toFixed(1)}), unchanged since the 1 Oct quarterly refresh. Dynamic decile is now <b>${h.dynDec}</b> (score ${h.dyn.toFixed(1)}).</p>`;
+ const head=`<p><b>${esc(h.name)}</b> (${esc(h.inst)}, ${esc(h.region)}): alignment decile <b>${h.alignDec}</b> (score ${h.align.toFixed(1)}), unchanged since the 1 Oct quarterly refresh. Dynamic decile is now <b>${h.dynDec}</b> (score ${h.dyn.toFixed(1)}).</p>`;
  if(!h.signals.length)return head+`<p>There are no new signals for this HCP since the refresh, so the dynamic score equals the alignment score. Start the live feed to stream new signals.</p>`+trace([`Query Agent: intent <code>explain_score</code>, entity ${esc(h.name)} (NPI ${h.npi})`,`Scoring Agent: <code>get_score_breakdown</code> → no uplift`,`Guardrail Agent: <span class="ok">✓</span> no claims without evidence`]);
  const g={};h.signals.forEach(e=>{const k=TYPES[e.type].label+(e.type==='social'?(e.sent>0?' (positive)':' (negative)'):'');(g[k]=g[k]||{n:0,p:0,ev:[]});g[k].n++;g[k].p+=e.pts;g[k].ev.push(e);});
  const items=Object.entries(g).sort((a,b)=>Math.abs(b[1].p)-Math.abs(a[1].p));
  const dir=h.dynDec>h.alignDec?'moved up':h.dynDec<h.alignDec?'moved down':'has new signals but has not changed decile';
  const srcs=new Set(h.signals.map(e=>SOURCES[e.src].name));
- return head+`<p>The HCP ${dir} because of <b>${h.signals.length} new signals</b> (total ${fmtPts(h.uplift)} pts):</p>
-  <ul>${items.map(([k,v])=>`<li><b>${v.n}× ${esc(k)}</b>, ${fmtPts(v.p)} pts ${v.ev.slice(0,3).map(cite).join('')}</li>`).join('')}</ul>
-  <p>Largest driver: <b>${esc(items[0][0])}</b>. Suggested action: ${nba(h)}</p>`+
+ return head+`<p>The HCP ${dir} because of <b>${h.signals.length} new signals</b> (total ${fmtPts(h.uplift)} pts):</p><ul>${items.map(([k,v])=>`<li><b>${v.n}× ${esc(k)}</b>, ${fmtPts(v.p)} pts ${v.ev.slice(0,3).map(cite).join('')}</li>`).join('')}</ul><p>Largest driver: <b>${esc(items[0][0])}</b>. Suggested action: ${nba(h)}</p>`+
   trace([`Query Agent: intent <code>explain_score</code>, entity ${esc(h.name)} (NPI ${h.npi})`,`Scoring Agent: <code>get_score_breakdown</code> → alignment ${h.align.toFixed(1)}, uplift ${fmtPts(h.uplift)}, dynamic ${h.dyn.toFixed(1)}`,`Evidence Agent: <code>get_recent_signals</code> → ${h.signals.length} events from ${[...srcs].join(', ')}`,`Guardrail Agent: <span class="ok">✓</span> every claim cited · <span class="ok">✓</span> no PHI · <span class="ok">✓</span> no clinical advice`]);
 }
 function answer(q){
@@ -803,91 +1235,102 @@ function answer(q){
  const h=HCPS.find(x=>{const p=x.name.toLowerCase().replace('dr. ','').split(' ');return s.includes(p[1])||s.includes(p.join(' '));});
  if(h)return explain(h);
  if(/source|data|feed/.test(s))return `<p>The score combines quarterly batch data with streaming signals:</p><ul>${Object.values(SOURCES).map(v=>`<li><b>${esc(v.name)}</b>: ${esc(v.kind)} · ${v.mode==='batch'?'quarterly batch':v.mode==='optional'?'optional, pending usage rights':'near real-time'}</li>`).join('')}</ul><p>All records resolve to an NPI through the OneKey master before scoring.</p>`+trace(['Query Agent: intent <code>describe_lineage</code>','Evidence Agent: <code>list_sources</code> → '+Object.keys(SOURCES).length+' sources','Guardrail Agent: <span class="ok">✓</span> no PHI']);
- if(/mov|rose|up the most|change/.test(s)){
-  const mv=HCPS.filter(x=>x.signals.length).sort((a,b)=>(b.dyn-b.align)-(a.dyn-a.align)).slice(0,5).filter(x=>x.dyn>x.align);
+ if(/mov|rose|up the most|change/.test(s)){const mv=HCPS.filter(x=>x.signals.length).sort((a,b)=>(b.dyn-b.align)-(a.dyn-a.align)).slice(0,5).filter(x=>x.dyn>x.align);
   if(!mv.length)return `<p>No HCP has moved since the 1 Oct refresh yet. Start the live feed and ask again.</p>`;
-  return `<p>Top ${mv.length} upward movers since the 1 Oct refresh:</p><ul>${mv.map(x=>`<li><b>${esc(x.name)}</b> (${esc(x.practice)}): decile ${x.alignDec} → ${x.dynDec}, ${fmtPts(x.dyn-x.align)} pts ${cite(x.signals[0])}</li>`).join('')}</ul>`+trace(['Query Agent: intent <code>rank_movers</code>, window since refresh','Segmentation Agent: <code>rank_by_delta</code> over '+HCPS.length+' HCPs','Evidence Agent: latest event per HCP','Guardrail Agent: <span class="ok">✓</span> every claim cited']);
- }
- if(/top|priority|decile 10|best/.test(s)){
-  const tp=[...HCPS].sort((a,b)=>b.dyn-a.dyn).slice(0,5);
-  return `<p>Top ${tp.length} HCPs by dynamic score right now:</p><ul>${tp.map(x=>`<li><b>${esc(x.name)}</b>: dynamic decile ${x.dynDec} (score ${x.dyn.toFixed(1)}), alignment decile ${x.alignDec}${x.signals[0]?' '+cite(x.signals[0]):''}</li>`).join('')}</ul>`+trace(['Query Agent: intent <code>top_priority</code>','Segmentation Agent: <code>rank_by_dynamic_score</code>','Guardrail Agent: <span class="ok">✓</span> no clinical advice']);
- }
+  return `<p>Top ${mv.length} upward movers since the 1 Oct refresh:</p><ul>${mv.map(x=>`<li><b>${esc(x.name)}</b> (${esc(x.practice)}): decile ${x.alignDec} → ${x.dynDec}, ${fmtPts(x.dyn-x.align)} pts ${cite(x.signals[0])}</li>`).join('')}</ul>`+trace(['Query Agent: intent <code>rank_movers</code>, window since refresh','Segmentation Agent: <code>rank_by_delta</code> over '+HCPS.length+' HCPs','Evidence Agent: latest event per HCP','Guardrail Agent: <span class="ok">✓</span> every claim cited']);}
+ if(/top|priority|decile 10|best/.test(s)){const tp=[...HCPS].sort((a,b)=>b.dyn-a.dyn).slice(0,5);
+  return `<p>Top ${tp.length} HCPs by dynamic score right now:</p><ul>${tp.map(x=>`<li><b>${esc(x.name)}</b>: dynamic decile ${x.dynDec} (score ${x.dyn.toFixed(1)}), alignment decile ${x.alignDec}${x.signals[0]?' '+cite(x.signals[0]):''}</li>`).join('')}</ul>`+trace(['Query Agent: intent <code>top_priority</code>','Segmentation Agent: <code>rank_by_dynamic_score</code>','Guardrail Agent: <span class="ok">✓</span> no clinical advice']);}
  return `<p>This demo answers questions about HCP score changes, movers, top priorities and data sources. Try one of the suggested questions.</p><p class="muted small">In the full platform, open questions are answered by the Bedrock Investigator Agent, grounded in the knowledge base and graph, with cited evidence.</p>`;
 }
-
-VIEWS.sources={
- shell:()=>`
-  <div class="phead"><div><span class="eyebrow">Unified HCP data · medical, commercial, external, digital</span><h1>Data sources</h1>
-   <p>Streaming sources update the dynamic score between quarters. Batch sources feed the quarterly alignment model.</p></div>
-   <button class="btn" type="button" id="rerun">Re-run connection check</button></div>
-  <div class="srcgrid" id="srcgrid"></div>`,
- update(){
-  $('srcgrid').innerHTML=Object.entries(SOURCES).map(([k,v])=>{const syncing=SYNCING[k];
-   const st=syncing?'<span class="stat sync">Syncing…</span>':v.mode==='batch'?'<span class="stat batch">Quarterly batch</span>':v.mode==='optional'?'<span class="stat opt">Optional · rights pending</span>':'<span class="stat ok">● Streaming</span>';
-   return `<div class="card src"><div class="top"><div><h4>${esc(v.name)}</h4><span class="k">${esc(v.kind)}</span></div>${st}</div>
-    <span class="rec num">${fmtN(S.rec[k])}</span><span class="k" style="margin-top:-6px">records</span>
-    <div class="meta"><span>Last update: ${v.mode==='batch'?'1 Oct 2026':S.lastSrc[k]?fmtT(S.lastSrc[k]):'1 Oct 2026'}</span><button class="btn" type="button" data-sync="${k}"${syncing?' disabled':''}>Sync now</button></div></div>`;}).join('');
- },
- after(){$('rerun').onclick=()=>boot(true);}
-};
 const SYNCING={};
-
+VIEWS.sources={
+ shell:()=>`<div class="dhead"><div><span class="eyebrow">Unified HCP data · medical, commercial, external, digital</span><h2>Data sources</h2><p>Streaming sources update the dynamic score between quarters. Batch sources feed the quarterly alignment model.</p></div><button class="btn" type="button" data-act="rerun">Re-run connection check</button></div><div class="srcgrid" id="srcgrid"></div>`,
+ update(){
+  $('srcgrid').innerHTML=Object.entries(SOURCES).map(([k,v])=>{const sy=SYNCING[k];
+   const st=sy?'<span class="stat sync">Syncing…</span>':v.mode==='batch'?'<span class="stat batch">Quarterly batch</span>':v.mode==='optional'?'<span class="stat opt">Optional · rights pending</span>':'<span class="stat ok">● Streaming</span>';
+   return `<div class="card src"><div class="top2"><div><h4>${esc(v.name)}</h4><span class="k">${esc(v.kind)}</span></div>${st}</div><span class="rec2 num">${fmtN(S.rec[k])}</span><span class="k" style="margin-top:-6px">records</span>
+    <div class="meta"><span>Last update: ${v.mode==='batch'?'1 Oct 2026':S.lastSrc[k]?fmtT(S.lastSrc[k]):'1 Oct 2026'}</span><button class="btn sm" type="button" data-sync="${k}"${sy?' disabled':''}>Sync now</button></div></div>`;}).join('');
+ }
+};
 VIEWS.arch={
- shell:()=>`
-  <div class="phead"><div><span class="eyebrow">Target solution · subject to Discovery approval</span><h1>Multi-agent AI architecture</h1>
-   <p>Each live signal flows up through these layers. Start the feed to watch it.</p></div></div>
+ shell:()=>`<div class="dhead"><div><span class="eyebrow">Target solution · subject to Discovery approval</span><h2>Multi-agent AI architecture</h2><p>Each live signal flows up through these layers. Start the feed to watch it.</p></div></div>
   <div class="commit"><span>Deterministic scoring outside the LLM</span><span>Full evidence citation</span><span>Guardrail-enforced agent outputs</span><span>Near real-time segmentation</span><span>Human governance at every gate</span></div>
-  <div class="layers">
-   ${[['L1','1 · User layer','Commercial reps · MSLs · Brand teams','Rep portal, MSL chat, dashboards','This app: Territory, HCP 360, Ask AI'],
-      ['L2','2 · Gateway & identity','AWS WAF + CloudFront · API Gateway · Cognito (SSO, RBAC, MFA)','Edge security, single API entry','Single-page app; role-based views in the pilot'],
-      ['L3','3 · Orchestration','Bedrock multi-agent orchestrator · Guardrails · Agent Trace · HITL','Plan, reason, orchestrate, monitor','“Agent trace” panel in Ask AI'],
-      ['L4','4 · Specialist agents','Query · Scoring · Segmentation · Evidence · Guardrail','Scoring Agent calls the deterministic scoring service','Rules engine computing weights + uplift'],
-      ['L5','5 · Intelligence & retrieval','Claude on Bedrock · Knowledge Bases (OpenSearch) · Neptune graph · SageMaker Feature Store','Features, RAG, HCP relationships','In-memory feature store per HCP'],
-      ['L6','6 · Enterprise data','Veeva CRM · Claims & Rx · PubMed & ClinicalTrials.gov · OneKey · S3 + Lake Formation','Governed gold layer','Synthetic data for 50 HCPs, simulated stream']
-     ].map(([id,n,c,sub,demo])=>`<div class="layer" id="${id}"><div class="lh"><b>${n}</b><small>${esc(sub)}</small></div><div class="comp">${c.split(' · ').map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="demo"><b>In this demo</b>${esc(demo)}</div></div>`).join('')}
-  </div>
+  <div class="layers">${[['L1','1 · User layer','Commercial reps · MSLs · Brand teams','Rep portal, MSL chat, dashboards','This app: dashboards, HCP 360, Ask AI'],
+   ['L2','2 · Gateway & identity','AWS WAF + CloudFront · API Gateway · Cognito (SSO, RBAC, MFA)','Edge security, single API entry','Single-page app; role-based views in the pilot'],
+   ['L3','3 · Orchestration','Bedrock multi-agent orchestrator · Guardrails · Agent Trace · HITL','Plan, reason, orchestrate, monitor','“Agent trace” panel in Ask AI'],
+   ['L4','4 · Specialist agents','Query · Scoring · Segmentation · Evidence · Guardrail','Scoring Agent calls the deterministic scoring service','Rules engine computing weights + uplift'],
+   ['L5','5 · Intelligence & retrieval','Claude on Bedrock · Knowledge Bases (OpenSearch) · Neptune graph · SageMaker Feature Store','Features, RAG, HCP relationships','In-memory feature store per HCP'],
+   ['L6','6 · Enterprise data','Veeva CRM · Claims & Rx · PubMed & ClinicalTrials.gov · OneKey · S3 + Lake Formation','Governed gold layer','Synthetic data for 50 HCPs, simulated stream']
+  ].map(([id,n,c,sub,demo])=>`<div class="layer" id="${id}"><div class="lh"><b>${n}</b><small>${esc(sub)}</small></div><div class="comp">${c.split(' · ').map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="demo"><b>In this demo</b>${esc(demo)}</div></div>`).join('')}</div>
   <p class="small muted">Cross-cutting: security (IAM, KMS), HIPAA / GxP governance, CloudWatch monitoring, FinOps budgets, multi-AZ resilience.</p>`,
  update:null
 };
+function boot(){
+ const list=['onekey','align','veeva','claims','rx','pubmed','ctgov','congress','omni'];
+ const b=$('boot');b.hidden=false;
+ b.innerHTML=`<div class="bootbox"><span class="eyebrow" style="color:#ffd0d7">AI engagement engine · live dynamic scoring (synthetic data)</span><h2>Connecting to enterprise data sources</h2><p>Loading the quarterly alignment model and building unified HCP profiles.</p>
+  <div class="blist">${list.map((k,i)=>`<div class="bl" id="b${i}"><span class="st"></span><span>${esc(SOURCES[k].name)}</span><span class="c num" id="bc${i}">waiting</span></div>`).join('')}<div class="bl" id="bx"><span class="st"></span><span>Unified HCP profiles and scores</span><span class="c num" id="bcx">waiting</span></div></div>
+  <div class="row"><button class="btn" type="button" id="bgo" hidden>Open live scoring</button><button class="btn ghost" type="button" id="bskip">Skip</button></div></div>`;
+ let i=0,done=false;const finish=()=>{if(done)return;done=true;b.hidden=true;};
+ $('bskip').onclick=finish;
+ const stepB=()=>{if(done)return;
+  if(i>0){$('b'+(i-1)).className='bl done';$('bc'+(i-1)).textContent=fmtN(S.rec[list[i-1]])+' records';}
+  if(i<list.length){$('b'+i).className='bl on';$('bc'+i).textContent='syncing…';i++;setTimeout(stepB,360);}
+  else{$('bx').className='bl on';$('bcx').textContent='scoring…';setTimeout(()=>{if(done)return;$('bx').className='bl done';$('bcx').textContent=HCPS.length+' HCPs scored';$('bgo').hidden=false;$('bskip').hidden=true;$('bgo').onclick=finish;$('bgo').focus();},700);}};
+ setTimeout(stepB,350);
+}
 
-/* ---------- global events ---------- */
+/* =====================================================================
+   Global events
+   ===================================================================== */
 document.addEventListener('click',e=>{
- const t=e.target.closest('[data-go],[data-hcp],[data-cite],[data-pick],[data-sort],[data-ask],[data-sync],[data-close]');
+ const t=e.target.closest('[data-route],[data-hcpp],[data-explore],[data-top],[data-sigf],[data-etab],[data-rech],[data-rechgo],[data-plan],[data-planprof],[data-engage],[data-livejane],[data-act],[data-speed],[data-go],[data-hcp],[data-cite],[data-pick],[data-sort],[data-ask],[data-sync],[data-close]');
  if(!t)return;
- if(t.dataset.go)go(t.dataset.go);
- else if(t.dataset.cite){e.stopPropagation();openEvidence(t.dataset.cite);}
- else if(t.dataset.hcp){S.sel=t.dataset.hcp;go('hcp');}
- else if(t.dataset.pick){S.sel=t.dataset.pick;mount();}
- else if(t.dataset.sort){const k=t.dataset.sort;S.sort=S.sort.k===k?{k,dir:-S.sort.dir}:{k,dir:k==='name'||k==='region'?1:-1};mount();}
- else if(t.dataset.ask)ask(t.dataset.ask);
- else if(t.dataset.sync){const k=t.dataset.sync;SYNCING[k]=true;refresh();setTimeout(()=>{SYNCING[k]=false;S.rec[k]+=SOURCES[k].mode==='batch'?0:Math.floor(3+Math.random()*40);refresh();toastMsg(`${SOURCES[k].name} synced`);},1300);}
- else if(t.dataset.close!==undefined)closeDrawer();
+ const d=t.dataset;
+ if(d.route){ST.etab=d.route==='engine'?'overview':ST.etab;nav(d.route);}
+ else if(d.hcpp){nav('hcp-'+d.hcpp);}
+ else if(d.explore!==undefined){const [p,,r]=d.explore.split('|');ST.ex={region:r||'',spec:'',prio:p||'',inst:'',score:'',pubs:'',trials:false};nav('explorer');}
+ else if(d.top){ST.dash.top=d.top;document.querySelectorAll('[data-top]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.top===d.top)));dashUpdate();}
+ else if(d.sigf){ST.sig.filter=d.sigf;document.querySelectorAll('[data-sigf]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sigf===d.sigf)));sigUpdate();}
+ else if(d.etab){ST.etab=d.etab;nav(d.etab==='live'?'engine-live':'engine');}
+ else if(d.rech){ST.rec.hcp=+d.rech;render();}
+ else if(d.rechgo){ST.rec.hcp=+d.rechgo<=8?+d.rechgo:1;nav('recommendations');}
+ else if(d.plan){ST.rec.done[d.plan]=true;render();toastMsg('Engagement action added to the plan');}
+ else if(d.planprof){toastMsg(`Engagement plan started for ${mh(d.planprof).name}`);}
+ else if(d.engage){toastMsg(`Engagement request sent to the MSL team for ${mh(d.engage).name}`);t.disabled=true;t.textContent='Requested ✓';}
+ else if(d.livejane!==undefined){S.sel='jane';S.page='hcp';ST.etab='live';nav('engine-live');}
+ else if(d.act==='export'){toastMsg('Report export is not available in this demo');}
+ else if(d.act==='xreset'){ST.ex={region:'',spec:'',prio:'',inst:'',score:'',pubs:'',trials:false};render();}
+ else if(d.act==='simsig'){simSignal();}
+ else if(d.act==='runeng'){runEngine();}
+ else if(d.act==='play'){setRunning(!S.running);}
+ else if(d.act==='step'){processEv(nextEvent());}
+ else if(d.act==='dreset'){dReset(t);}
+ else if(d.act==='rerun'){boot();}
+ else if(d.speed){S.speed=+d.speed;updateBar();}
+ else if(d.go){dgo(d.go);}
+ else if(d.cite){e.stopPropagation();openEvidence(d.cite);}
+ else if(d.hcp){S.sel=d.hcp;dgo('hcp');}
+ else if(d.pick){S.sel=d.pick;dmount();}
+ else if(d.sort){const k=d.sort;S.sort=S.sort.k===k?{k,dir:-S.sort.dir}:{k,dir:k==='name'||k==='region'?1:-1};dmount();}
+ else if(d.ask){ask(d.ask);}
+ else if(d.sync){const k=d.sync;SYNCING[k]=true;drefresh();setTimeout(()=>{SYNCING[k]=false;S.rec[k]+=SOURCES[k].mode==='batch'?0:Math.floor(3+Math.random()*40);drefresh();toastMsg(`${SOURCES[k].name} synced`);},1300);}
+ else if(d.close!==undefined){closeDrawer();}
+});
+document.addEventListener('change',e=>{
+ const id=e.target.id,v=e.target.value;
+ if(id==='d-region'){ST.dash.region=v;dashUpdate();}
+ else if(id==='d-spec'){ST.dash.spec=v;dashUpdate();}
+ else if(id==='d-period'){ST.dash.period=v;toastMsg(`Showing ${v.toLowerCase()}`);}
+ else if(id.startsWith('x-')){const k={'x-region':'region','x-spec':'spec','x-prio':'prio','x-inst':'inst','x-score':'score','x-pubs':'pubs','x-trials':'trials'}[id];ST.ex[k]=id==='x-trials'?e.target.checked:v;exUpdate();}
+ else if(id==='l-region'){ST.lb.region=v;lbUpdate();}
+ else if(id==='l-sort'){ST.lb.sort=v;lbUpdate();}
+ else if(id==='s-live'){ST.sig.live=e.target.checked;sigLoop();toastMsg(ST.sig.live?'Live feed enabled':'Live feed paused');}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 setInterval(()=>document.querySelectorAll('[data-ago]').forEach(el=>el.textContent=ago(S.lastReal)),1000);
 
-/* ---------- boot sequence ---------- */
-function boot(manual){
- const list=[['onekey','HCP master'],['align','Q3 2026 deciles'],['veeva','CRM'],['claims','Claims'],['rx','Rx / Dx'],['pubmed','Publications'],['ctgov','Trials'],['congress','Congress'],['omni','Omnichannel']];
- const b=$('boot');b.hidden=false;
- b.innerHTML=`<div class="bootbox"><span class="eyebrow" style="color:#f3c6cf">HCP Signal Studio · Takeda IBD pilot (synthetic)</span><h2>Connecting to enterprise data sources</h2><p>Loading the quarterly alignment model and building unified HCP profiles.</p>
-  <div class="blist">${list.map(([k],i)=>`<div class="bl" id="b${i}"><span class="st"></span><span>${esc(SOURCES[k].name)}</span><span class="c num" id="bc${i}">waiting</span></div>`).join('')}
-  <div class="bl" id="bx"><span class="st"></span><span>Unified HCP profiles and scores</span><span class="c num" id="bcx">waiting</span></div></div>
-  <div class="row"><button class="btn" type="button" id="bgo" hidden>Open dashboard</button><button class="btn ghost" type="button" id="bskip">Skip</button></div></div>`;
- let i=0,done=false;
- const finish=()=>{if(done)return;done=true;b.hidden=true;};
- $('bskip').onclick=finish;
- const stepB=()=>{
-  if(done)return;
-  if(i>0){const p=$('b'+(i-1));p.className='bl done';$('bc'+(i-1)).textContent=fmtN(S.rec[list[i-1][0]])+' records';}
-  if(i<list.length){$('b'+i).className='bl on';$('bc'+i).textContent='syncing…';i++;setTimeout(stepB,380);}
-  else{$('bx').className='bl on';$('bcx').textContent='scoring…';setTimeout(()=>{if(done)return;$('bx').className='bl done';$('bcx').textContent=HCPS.length+' HCPs scored';$('bgo').hidden=false;$('bskip').hidden=true;$('bgo').onclick=finish;$('bgo').focus();},700);}
- };
- setTimeout(stepB,400);
-}
-
-initState();updateBar();mount();boot(false);
+initState();parseHash();render();
 </script>
-
 </body>
 </html>
